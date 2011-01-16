@@ -1,8 +1,28 @@
-## RIAB_SERVER CLASS
+#!/usr/bin/env python
+#coding:utf-8
+# Author:   AIDRF www.aifdr.org
+# Purpose:  Act as the RIAB server
+# Created: 01/16/2011
 
-## Risk-in-a-Box (RIAB) Server is a Python package for modelling  
-## the impact from natural hazards.
+import sys
+import unittest
+import ConfigParser
+import common
+import riab_api
 
-## The server is a stateless server that exposes an XMLRPC API
-## and interfaces using REST with any GeoServers
+from rpc_server import RPCServer
 
+#config = ConfigParser.RawConfigParser()
+
+
+
+class RiabServer(RPCServer):
+    def __init__(self):
+        
+        
+        # register the api
+        RPCServer.__init__(self,'localhost',8000,riab_api.RiabAPI,riab_api)
+        
+if __name__=='__main__':
+    RiabServer().start()
+    unittest.main()

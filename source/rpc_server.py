@@ -26,12 +26,15 @@ class RPCServer():
     # The stateless RIAB server
     
     
-    def __init__(self,url,port,apiclass):
+    def __init__(self,url,port,api_class,api_module=None):
         # Restrict to a particular path.
         class RequestHandler(SimpleXMLRPCRequestHandler):
             xmlrpcpath="/RPC2"
     
             rpc_paths = (xmlrpcpath)
+
+        self.api_class=api_class
+        self.api_module=api_module
 
         # Create server
         self.server = SimpleXMLRPCServer((url, port),
@@ -42,13 +45,30 @@ class RPCServer():
         
         # Register an instance; all the methods of the apiclass instance are
         # published as XML-RPC methods 
-        self.server.register_instance(apiclass)
+        self.server.register_instance(api_class())
         logging.debug('API Registered.')
+        
+        self.server.register_function(self.stop)
+        self.server.register_function(self.reload)
+
+
+    def reload(self):
+        if self.api_module:
+            reload(self.api_module)
+        self.server.register_instance(self.api_module.RiabAPI())
+        return "SUCESS: %s reloaded"%str(self.api_module)
+
             
     def start(self):
         # Run the server's main loop
         logging.debug('Server Started.')
         self.server.serve_forever()
+        
+    def stop(self):
+        logging.debug('Server Stopped.')
+        self.server.shutdown()
+        return "stopping"
+    
 
 if __name__=='__main__':
     unittest.main()
