@@ -1,3 +1,5 @@
+"""The top test script"""
+
 import os
 import sys
 import xmlrpclib
