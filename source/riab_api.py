@@ -1,32 +1,44 @@
 #!/usr/bin/env python
 #coding:utf-8
-# Author:   AIDRF www.aifdr.org
+# Author:   AIFDR www.aifdr.org
 # Purpose:  Act as the Riab API
 # Created: 01/16/2011
 
 class RiabAPI():
     API_VERSION="0.1a"
-    
+
+        
     def version(self):
         return self.API_VERSION
+    
     
     def create_geoserver_layer_handle(self, username, userpass, geoserver_url, layer_name):
         """Create fully qualified geoserver layer name username:password@geoserver_url:shakemap_padang_20090930
          
         Arguments:
-        username=username
-        userpass=password 
-        geoserver_url=The URL of the geoserver   
-        layer_name=name of data layer
+            username=username
+            userpass=password 
+            geoserver_url=The URL of the geoserver   
+            layer_name=name of data layer
                      
         """
         return "%s:%s@%s:%s" % (username, userpass, geoserver_url, layer_name)
 
+        
     def split_geoserver_layer_handle(self, geoserver_layer_handle):
+        """Split fully qualified geoserver layer name into its constituents
+        
+        Arguments:
+            geoserver_layer_handle = string with format: username:password@geoserver_url:shakemap_padang_20090930
+            
+            
+        """
+        
         userpass,gurl=geoserver_layer_handle.split('@')
         username,password=userpass.split(':')
         geoserver_url,layer_name=gurl.split(':')
         return username, password, geoserver_url, layer_name
+    
     
     def check_geoserver_layer_handle(self, geoserver_layer_handle):
         """Check geoserver layer name
@@ -40,7 +52,7 @@ class RiabAPI():
         return "ERROR: NO IMPLEMENTATION"
     
     
-    def calculate(self,hazards, exposures, impact_function_id, impact, comment=''):
+    def calculate(self, hazards, exposures, impact_function_id, impact, comment=''):
         """Calculate the Impact Geo as a function of Hazards and Exposures
         
         Keyword arguments:
@@ -63,32 +75,21 @@ class RiabAPI():
     def suggest_impact_func_ids(self, hazards, exposures):
         """Return appropriate impact function ids for the given hazards and exposure
         
-        Keyword arguments:
-        hazards = An array of hazard levels .. [H1,H2..HN] each H is a geoserver layer path
-        exposure = An array of exposure levels ..[E1,E2...EN] each E is a geoserver layer path
+        Arguments:
+            hazards = An array of hazard levels .. [H1,H2..HN] each H is a geoserver layer path
+            exposure = An array of exposure levels ..[E1,E2...EN] each E is a geoserver layer path
         
         Returns
             impact_function_ids = array of ids of the impact function that can be run
         """
         return "ERROR: NO IMPLEMENTATION"
-    
+
+            
     def get_impact_func_details(self, impact_function_id):
         """Return appropriate impact function details for the given hazards and exposure
         
         Arguments:
-        impact_function_id = id of the impact function
-        
-        Returns
-            a hash containing details of the impact function:
-            manditory fields are: 'Name', 'Description', 'Author'
-        """
-        return "ERROR: NO IMPLEMENTATION"
-    
-    def get_all_impact_functions(self):
-        """Return a list of all impact functions 
-        
-        Keyword(FIXME ??) arguments:
-        impact_function_id = id of the impact function
+            impact_function_id = id of the impact function
         
         Returns
             a hash containing details of the impact function:
@@ -96,12 +97,28 @@ class RiabAPI():
         """
         return "ERROR: NO IMPLEMENTATION"
     
-    # GeoServer Interfacing ##########################
+    
+    def get_all_impact_functions(self):
+        """Return a list of all impact functions 
+        
+        Arguments:
+            impact_function_id = id of the impact function
+        
+        Returns
+            a hash containing details of the impact function:
+            mandatory fields are: 'Name', 'Description', 'Author'
+        """
+        return "ERROR: NO IMPLEMENTATION"
+    
+    
+    #----------------------
+    # GeoServer Interfacing
+    #----------------------    
 
     def upload_geoserver_layer(self, data, name):
         """Upload (raster or vector) data to the specified geoserver
         
-        Keyword arguments:
+        Arguments:
             data = the layer data
             name = the fully qualified geoserver layer name
         
