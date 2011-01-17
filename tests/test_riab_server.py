@@ -17,7 +17,6 @@ class Test_Riab_Server(unittest.TestCase):
         """Connect to test geoserver with new instance
         """
             
-        #execfile('stop_geoserver.py')
         self.riab_server = xmlrpclib.ServerProxy(test_url)
         try:
             if not self.have_reloaded:

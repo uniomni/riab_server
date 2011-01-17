@@ -1,4 +1,7 @@
-"""The top test script"""
+"""Top test script for riab_server
+
+Start a new server and run the test suite
+"""
 
 import os
 import sys
@@ -10,12 +13,10 @@ parent_dir = os.path.split(os.getcwd())[0]
 source_path = os.path.join(parent_dir, 'source') 
 
 # Stop any running XMLRPC server(s)
-
 try:
     xmlrpclib.ServerProxy(test_url).stop()
 except:
     pass
-
 
 # Start XMLRPC Riab Server
 os.system('python %s/%s &' % (source_path, 'riab_server.py'))
@@ -28,7 +29,7 @@ while(True):
         # Server is not running
         pass
     else:
-        # Server is up and running
+        # Server is ready
         break
     
 # Run test suite
