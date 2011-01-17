@@ -6,23 +6,22 @@
 
 import sys
 import unittest
-import ConfigParser
 import common
 import riab_api
 
 from rpc_server import RPCServer
 
-#config = ConfigParser.RawConfigParser()
-
-
 
 class RiabServer(RPCServer):
     def __init__(self):
-        
-        
+           
         # register the api
+        print common.port,common.server_url
         RPCServer.__init__(self,'localhost',8000,riab_api.RiabAPI,riab_api)
         
 if __name__=='__main__':
+    #TODO: Read from commandline args or from config
+    #config = ConfigParser.RawConfigParser()
+    # plugin files base
     RiabServer().start()
     unittest.main()
