@@ -14,7 +14,8 @@ from rpc_server import RPCServer,stop_server
 
 
 class RiabServer(RPCServer):
-<<<<<<< HEAD
+    """Base class for the Risk-in-a-Box server"""
+    
     def __init__(self, server_url, port):
            
         # register the api
@@ -39,23 +40,4 @@ if __name__=='__main__':
     # By default call the server start
     args.stop(args.server,args.port) #TODO: Better naming convention for args??
 
-   
-=======
-    """Base class for the Risk-in-a-Box server"""
-    
-    def __init__(self):
-        
-        # Register the api
-        RPCServer.__init__(self, 
-                           common.server_url, 
-                           common.port, 
-                           riab_api.RiabAPI, 
-                           riab_api)
-        
-if __name__=='__main__':
-    # TODO: Read from commandline args or from config
-    # config = ConfigParser.RawConfigParser()
-    # plugin files base
-    RiabServer().start()
-    unittest.main()
->>>>>>> 59bf5a47332d1e16088addaf01eb0f2a9e02145f
+
