@@ -19,7 +19,7 @@ class APITest():
         return self.API_VERSION
     
     def test(self):
-        print "hello"
+        print 'hello'
         return True
         
 class XMLRPCServer_overload(SimpleXMLRPCServer):
@@ -53,7 +53,8 @@ class RPCServer():
         self.server = XMLRPCServer_overload((url, port),
                                             requestHandler=RequestHandler)
         logging.debug('XMLRPC Server instantiated.')
-        # register functions that allow listMethods, methodHelp and methodSignature.
+        
+        # Register functions that allow listMethods, methodHelp and methodSignature.
         self.server.register_introspection_functions()
         
         # Register an instance; all the methods of the apiclass instance are
@@ -68,6 +69,7 @@ class RPCServer():
     def reload(self):
         if self.api_module:
             reload(self.api_module)
+            
         # To do work out how to handle this without direct ref
         self.server.register_instance(self.api_module.RiabAPI())
         return 'SUCCESS: %s reloaded' % str(self.api_module)
@@ -77,6 +79,7 @@ class RPCServer():
         # Run the server's main loop
         logging.debug('Server Started.')
         self.server.serve_forever()
+        
         
     def stop(self):
         logging.debug('Server Stopped.')

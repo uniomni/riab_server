@@ -12,13 +12,19 @@ class RiabAPI():
     
     
     def create_geoserver_layer_handle(self, username, userpass, geoserver_url, layer_name):
-        """Create fully qualified geoserver layer name username:password@geoserver_url:shakemap_padang_20090930
-         
+        """Create fully qualified geoserver layer name
+        
         Arguments
             username=username
             userpass=password 
             geoserver_url=The URL of the geoserver   
             layer_name=name of data layer
+            
+        Returns
+            layer_handle=string of the form:
+                username:password@geoserver_url:shakemap_padang_20090930
+                 
+
                      
         """
         return '%s:%s@%s:%s' % (username, userpass, geoserver_url, layer_name)
@@ -28,7 +34,8 @@ class RiabAPI():
         """Split fully qualified geoserver layer name into its constituents
         
         Arguments
-            geoserver_layer_handle = string with format: username:password@geoserver_url:shakemap_padang_20090930
+            geoserver_layer_handle=string with format: 
+                username:password@geoserver_url:shakemap_padang_20090930
             
             
         """
@@ -51,7 +58,6 @@ class RiabAPI():
             'SUCCESS' if complete
             'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' 
                     
-        
         """
         return 'ERROR: NO IMPLEMENTATION'
         
@@ -61,9 +67,14 @@ class RiabAPI():
         """Calculate the Impact Geo as a function of Hazards and Exposures
         
         Arguments
-            impact_function_id = id of the impact function to be run (fully qualified path (from base path))
-            hazards = An array of hazard levels .. [H1,H2..HN] each H is a geoserver layer path where each layer follows the format username:userpass@geoserver_url:layer_name (Look at REST for inspiration)
-            exposure = An array of exposure levels ..[E1,E2...EN] each E is a geoserver layer path
+            impact_function_id=Id of the impact function to be run 
+                               (fully qualified path (from base path))
+            hazards = An array of hazard levels .. [H1,H2..HN] each H is a geoserver layer path 
+                      where each layer follows the format 
+                      username:userpass@geoserver_url:layer_name 
+                      (Look at REST for inspiration)
+            exposure = An array of exposure levels ..[E1,E2...EN] each E is a 
+                       geoserver layer path
             impact = The output impact level
         
         Returns

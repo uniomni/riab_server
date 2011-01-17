@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
-import sys, os, string
-import numpy
+import sys, os
 import unittest
-import pycurl
-import StringIO
-import json
 import xmlrpclib
 from config import test_url
 
@@ -61,10 +57,7 @@ class Test_Riab_Server(unittest.TestCase):
         s = self.riab_server.create_geoserver_layer_handle('ted', 'test', 'www.geo.com', 'map')
         msg = 'Wrong handle returned %s' % s
         assert s == 'ted:test@www.geo.com:map', msg
-
-        # FIXME (Ole): Think of some more testing here
         
-            
  
 
 ################################################################################
