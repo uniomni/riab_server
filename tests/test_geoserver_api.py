@@ -28,9 +28,16 @@ class Test_API(unittest.TestCase):
         userpass='cooper'
         geoserver_url='schools.out.forever'
         layer_name='poison'
-        self.api.create_geoserver_layer_handle(username, userpass, geoserver_url, layer_name)
-        
+        lh = self.api.create_geoserver_layer_handle(username, userpass, geoserver_url, layer_name)
+        assert lh == 'alice:cooper@schools.out.forever:poison'
 
+        s1, s2, s3, s4 = self.api.split_geoserver_layer_handle(lh)                
+        assert s1 == username
+        assert s2 == userpass
+        assert s3 == geoserver_url        
+        assert s4 == layer_name
+        
+        
 ################################################################################
 
 if __name__ == '__main__':
