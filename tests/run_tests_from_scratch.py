@@ -12,14 +12,11 @@ from config import test_url
 parent_dir = os.path.split(os.getcwd())[0]
 source_path = os.path.join(parent_dir, 'source') 
 
-# Stop any running XMLRPC server(s)
-try:
-    xmlrpclib.ServerProxy(test_url).stop()
-except:
-    pass
+# Stop the XMLRPC Riab Server if its running
+os.system('python %s/%s --stop' % (source_path, 'riab_server.py'))
 
 # Start XMLRPC Riab Server
-os.system('python %s/%s &' % (source_path, 'riab_server.py'))
+os.system('python %s/%s 2> err.out & ' % (source_path, 'riab_server.py'))
 
 while(True):
     riab_server = xmlrpclib.ServerProxy(test_url)
@@ -34,3 +31,6 @@ while(True):
     
 # Run test suite
 os.system('python test_riab_server.py')
+
+# Stop the XMLRPC Riab Server
+os.system('python %s/%s --stop' % (source_path, 'riab_server.py'))

@@ -1,5 +1,3 @@
-#################
-#  Experimental
 #!/usr/bin/env python
 #coding:utf-8
 # Author:   AIDRF www.aifdr.org
@@ -9,6 +7,9 @@
 # Logging #
 import logging
 import io
+import riab_api
+
+
 
 LOG_FILENAME='out'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
