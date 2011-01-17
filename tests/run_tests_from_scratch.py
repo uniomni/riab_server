@@ -1,4 +1,7 @@
-"""The top test script"""
+"""Top test script for riab_server
+
+Start a new server and run the test suite
+"""
 
 import os
 import sys
@@ -23,7 +26,7 @@ while(True):
         # Server is not running
         pass
     else:
-        # Server is up and running
+        # Server is ready
         break
     
 # Run test suite
