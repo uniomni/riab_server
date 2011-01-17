@@ -7,29 +7,24 @@ import pycurl
 import StringIO
 import json
 import xmlrpclib
-
-# Add location of source code to search path so that API can be imported
-parent_dir = os.path.split(os.getcwd())[0]
-source_path = os.path.join(parent_dir) 
-sys.path.append(source_path)
+from config import test_url
 
 class Test_Riab_Server(unittest.TestCase):
 
-    test_url = 'http://localhost:8000'
-    have_reloaded=False
+    have_reloaded = False
     
     def setUp(self):
         """Connect to test geoserver with new instance
         """
             
         #execfile('stop_geoserver.py')
-        self.riab_server = xmlrpclib.ServerProxy(self.test_url)
+        self.riab_server = xmlrpclib.ServerProxy(test_url)
         try:
             if not self.have_reloaded:
                 s = self.riab_server.reload()
-                self.have_reloaded=True
+                self.have_reloaded = True
         except:
-            print "Warning can't reload classes!"
+            print 'Warning can\'t reload classes!'
             
     def tearDown(self):
         """Destroy test geoserver again next test
@@ -44,7 +39,7 @@ class Test_Riab_Server(unittest.TestCase):
         # make sure the latest classes are being used
         
         s = self.riab_server.reload()
-        assert s.startswith("SUCCESS"),"Problem with the reload"
+        assert s.startswith('SUCCESS'), 'Problem with the reload'
         
         # Exception will be thrown if there is no server
 
@@ -54,7 +49,7 @@ class Test_Riab_Server(unittest.TestCase):
         # make sure the latest classes are being used
         
         s = self.riab_server.version()
-        assert s.startswith("0.1a"),"Version incorrect %s"%s
+        assert s.startswith('0.1a'), 'Version incorrect %s' % s
         
         # Exception will be thrown if there is no server
 
@@ -64,9 +59,9 @@ class Test_Riab_Server(unittest.TestCase):
         """Test that handles are created correctly
         """
 
-        s = self.riab_server.create_geoserver_layer_handle("ted","test","www.geo.com","map")
+        s = self.riab_server.create_geoserver_layer_handle('ted', 'test', 'www.geo.com', 'map')
         msg = 'Wrong handle returned %s' % s
-        assert s == "ted:test@www.geo.com:map", msg
+        assert s == 'ted:test@www.geo.com:map', msg
 
         # FIXME (Ole): Think of some more testing here
         

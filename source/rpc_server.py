@@ -22,9 +22,20 @@ class APITest():
         print "hello"
         return True
         
+class XMLRPCServer_overload(SimpleXMLRPCServer):
+    """Subclass to allow clean exit
+    
+    Taken from http://code.activestate.com/recipes/114579-remotely-exit-a-xmlrpc-server-cleanly/
+    """
+    
+    def serve_forever(self):
+	self.quit = 0
+	while not self.quit:
+	    self.handle_request()
+
+        
 class RPCServer():
     # The stateless RIAB server
-    
     
     def __init__(self, url, port, api_class, api_module=None):
         # Restrict to a particular path.
@@ -35,10 +46,12 @@ class RPCServer():
 
         self.api_class=api_class
         self.api_module=api_module
-
+        self.url=url
+        self.port=port
+        
         # Create server
-        self.server = SimpleXMLRPCServer((url, port),
-                                    requestHandler=RequestHandler)
+        self.server = XMLRPCServer_overload((url, port),
+                                            requestHandler=RequestHandler)
         logging.debug('XMLRPC Server instantiated.')
         # register functions that allow listMethods, methodHelp and methodSignature.
         self.server.register_introspection_functions()
@@ -57,7 +70,7 @@ class RPCServer():
             reload(self.api_module)
         # To do work out how to handle this without direct ref
         self.server.register_instance(self.api_module.RiabAPI())
-        return "SUCCESS: %s reloaded"%str(self.api_module)
+        return 'SUCCESS: %s reloaded' % str(self.api_module)
 
             
     def start(self):
@@ -67,8 +80,8 @@ class RPCServer():
         
     def stop(self):
         logging.debug('Server Stopped.')
-        self.server.shutdown()
-        return "stopping"
+        self.server.quit = 1
+        return 'SUCCESS: Server at %s:%s stopping' % (self.url, self.port)
     
 
 if __name__=='__main__':
