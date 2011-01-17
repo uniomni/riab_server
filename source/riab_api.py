@@ -4,6 +4,8 @@
 # Purpose:  Act as the Riab API
 # Created: 01/16/2011
 
+import os
+
 class RiabAPI():
     API_VERSION='0.1a'
         
@@ -11,7 +13,7 @@ class RiabAPI():
         return self.API_VERSION
     
     
-    def create_geoserver_layer_handle(self, username, userpass, geoserver_url, layer_name):
+    def create_geoserver_layer_handle(self, username, userpass, geoserver_url, layer_name, workspace):
         """Create fully qualified geoserver layer name
         
         Arguments
@@ -19,15 +21,23 @@ class RiabAPI():
             userpass=password 
             geoserver_url=The URL of the geoserver   
             layer_name=name of data layer
+            workspace=name of geoserver workspace (default is None)
+            
             
         Returns
             layer_handle=string of the form:
-                username:password@geoserver_url:shakemap_padang_20090930
+                username:password@geoserver_url/[workspace/]layer_name
+                
+        Example         
+            admin:geoserver@http://localhost:8080/geoserver/hazard/shakemap_padang_20090930
                  
 
                      
         """
-        return '%s:%s@%s:%s' % (username, userpass, geoserver_url, layer_name)
+        if workspace == '':
+            return '%s:%s@%s/%s' % (username, userpass, geoserver_url, layer_name)
+        else:
+            return '%s:%s@%s/[%s]/%s' % (username, userpass, geoserver_url, workspace, layer_name)        
 
         
     def split_geoserver_layer_handle(self, geoserver_layer_handle):
@@ -35,15 +45,22 @@ class RiabAPI():
         
         Arguments
             geoserver_layer_handle=string with format: 
-                username:password@geoserver_url:shakemap_padang_20090930
-            
-            
+                username:password@geoserver_url/[hazard]/shakemap_padang_20090930
+            or
+                username:password@geoserver_url/shakemap_padang_20090930            
         """
         
-        userpass,gurl=geoserver_layer_handle.split('@')
-        username,password=userpass.split(':')
-        geoserver_url,layer_name=gurl.split(':')
-        return username, password, geoserver_url, layer_name
+        userpass, gurl = geoserver_layer_handle.split('@')
+        username, password = userpass.split(':')
+        dirs = gurl.split('/')
+        geoserver_url = dirs[0]
+        layer_name = dirs[-1]                
+        if len(dirs) == 3:
+            workspace = dirs[1][1:-1] # Strip [ and ]
+        else:
+            workspace = ''
+            
+        return username, password, geoserver_url, layer_name, workspace
     
     
     def check_geoserver_layer_handle(self, geoserver_layer_handle):
@@ -63,7 +80,7 @@ class RiabAPI():
         
         
     
-    def calculate(self, hazards, exposures, impact_function_id, impact, comment=''):
+    def calculate(self, hazards, exposures, impact_function_id, impact, comment):
         """Calculate the Impact Geo as a function of Hazards and Exposures
         
         Arguments
@@ -76,6 +93,7 @@ class RiabAPI():
             exposure = An array of exposure levels ..[E1,E2...EN] each E is a 
                        geoserver layer path
             impact = The output impact level
+            comment = String with comment for output metadata
         
         Returns
             string: 'SUCCESS' if complete

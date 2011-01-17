@@ -13,7 +13,7 @@ import logging
 from common import *
 
 class APITest():
-    API_VERSION="0.1a"
+    API_VERSION='0.1a'
     
     def version(self):
         return self.API_VERSION
