@@ -57,7 +57,7 @@ class RPCServer():
             reload(self.api_module)
         # To do work out how to handle this without direct ref
         self.server.register_instance(self.api_module.RiabAPI())
-        return "SUCESS: %s reloaded"%str(self.api_module)
+        return "SUCCESS: %s reloaded"%str(self.api_module)
 
             
     def start(self):

@@ -44,7 +44,7 @@ class Test_Riab_Server(unittest.TestCase):
         # make sure the latest classes are being used
         
         s = self.riab_server.reload()
-        assert s.startswith("SUCESS"),"Problem with the reload"
+        assert s.startswith("SUCCESS"),"Problem with the reload"
         
         # Exception will be thrown if there is no server
 
