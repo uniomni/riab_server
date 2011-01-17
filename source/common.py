@@ -9,7 +9,7 @@ import logging
 import io
 
 LOG_FILENAME="out"
-logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
+logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
 
 # Configuration Support
 import ConfigParser
@@ -25,7 +25,7 @@ config = ConfigParser.ConfigParser()
 config.readfp(io.BytesIO(default_config))
 config.read('riab_server.cfg')
 
-port=config.get("Server","port")
+port=config.getint("Server","port")
 server_url=config.get("Server","server_url")
 
 

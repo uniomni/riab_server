@@ -16,8 +16,7 @@ class RiabServer(RPCServer):
     def __init__(self):
            
         # register the api
-        print common.port,common.server_url
-        RPCServer.__init__(self,'localhost',8000,riab_api.RiabAPI,riab_api)
+        RPCServer.__init__(self, common.server_url, common.port, riab_api.RiabAPI, riab_api)
         
 if __name__=='__main__':
     #TODO: Read from commandline args or from config
