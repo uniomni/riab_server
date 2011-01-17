@@ -21,7 +21,7 @@ class RiabServer(RPCServer):
         
         
         # register the api
-        RPCServer.__init__(self,'localhost',8000,riab_api.RiabAPI,riab_api)
+        RPCServer.__init__(self, 'localhost', 8000, riab_api.RiabAPI, riab_api)
         
 if __name__=='__main__':
     RiabServer().start()

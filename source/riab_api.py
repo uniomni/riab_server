@@ -11,8 +11,7 @@ class RiabAPI():
         return self.API_VERSION
     
     def create_geoserver_layer_handle(self, username, userpass, geoserver_url, layer_name):
-        """
-        Create fully qualified geoserver layer name username:password@geoserver_url:shakemap_padang_20090930
+        """Create fully qualified geoserver layer name username:password@geoserver_url:shakemap_padang_20090930
          
         Arguments:
         username=username
@@ -30,8 +29,7 @@ class RiabAPI():
         return username, password, geoserver_url, layer_name
     
     def check_geoserver_layer_handle(self, geoserver_layer_handle):
-        """
-        Check geoserver layer name
+        """Check geoserver layer name
         
         Verify that layer name exists and can be accessed.
         string: "SUCCESS" if complete
@@ -43,8 +41,7 @@ class RiabAPI():
     
     
     def calculate(self,hazards, exposures, impact_function_id, impact, comment=''):
-        """
-        Calculate the Impact Geo as a function of Hazards and Exposures
+        """Calculate the Impact Geo as a function of Hazards and Exposures
         
         Keyword arguments:
         impact_function_id = id of the impact function to be run (fully qualified path (from base path))
@@ -63,9 +60,8 @@ class RiabAPI():
         return "ERROR: NO IMPLEMENTATION"
     
     
-    def suggest_impact_func_ids(self,hazards, exposures):
-        """
-        Return appropriate impact function ids for the given hazards and exposure
+    def suggest_impact_func_ids(self, hazards, exposures):
+        """Return appropriate impact function ids for the given hazards and exposure
         
         Keyword arguments:
         hazards = An array of hazard levels .. [H1,H2..HN] each H is a geoserver layer path
@@ -76,9 +72,8 @@ class RiabAPI():
         """
         return "ERROR: NO IMPLEMENTATION"
     
-    def get_impact_func_details(self,impact_function_id):
-        """
-        Return appropriate impact function details for the given hazards and exposure
+    def get_impact_func_details(self, impact_function_id):
+        """Return appropriate impact function details for the given hazards and exposure
         
         Arguments:
         impact_function_id = id of the impact function
@@ -90,10 +85,9 @@ class RiabAPI():
         return "ERROR: NO IMPLEMENTATION"
     
     def get_all_impact_functions(self):
-        """
-        Return a list of all impact functions 
+        """Return a list of all impact functions 
         
-        Keyword arguments:
+        Keyword(FIXME ??) arguments:
         impact_function_id = id of the impact function
         
         Returns
@@ -104,9 +98,8 @@ class RiabAPI():
     
     # GeoServer Interfacing ##########################
 
-    def upload_geoserver_layer(self,data, name):
-        """
-        Upload (raster or vector) data to the specified geoserver
+    def upload_geoserver_layer(self, data, name):
+        """Upload (raster or vector) data to the specified geoserver
         
         Keyword arguments:
             data = the layer data
@@ -118,9 +111,8 @@ class RiabAPI():
         """
         return "ERROR: NO IMPLEMENTATION"
     
-    def download_geoserver_raster_layer(self,name, bounding_box=None):
-        """
-        Upload data to the specified geoserver
+    def download_geoserver_raster_layer(self, name, bounding_box=None):
+        """Upload data to the specified geoserver
         
         Keyword arguments:
             name = the fully qualified name of the layer i.e. 'username:password@geoserver_url:shakemap_padang_20090930'
@@ -135,8 +127,7 @@ class RiabAPI():
         return "ERROR: NO IMPLEMENTATION"
     
     def download_geoserver_vector_layer(self):
-        """
-        Download data to the specified geoserver
+        """Download data to the specified geoserver
         
         Note - can this be wrapped up with the raster version? 
         """
