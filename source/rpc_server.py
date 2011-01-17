@@ -6,12 +6,24 @@
 
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+import xmlrpclib
+import socket
 import sys
 import unittest
 import ConfigParser
 import logging
 from common import *
 
+
+def stop_server(server_url,port):
+    url='http://%s:%s' % (server_url,port)
+    try:
+        xmlrpclib.ServerProxy(url).stop()
+        print 'SUCCESS: Stopped server at %s' % url
+    except socket.error:
+        print 'FAIL: No server listening at %s' % url
+
+	
 class APITest():
     API_VERSION="0.1a"
     
