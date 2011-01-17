@@ -26,7 +26,7 @@ class RPCServer():
     # The stateless RIAB server
     
     
-    def __init__(self,url,port,api_class,api_module=None):
+    def __init__(self, url, port, api_class, api_module=None):
         # Restrict to a particular path.
         class RequestHandler(SimpleXMLRPCRequestHandler):
             xmlrpcpath="/RPC2"
