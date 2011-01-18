@@ -30,7 +30,7 @@ while(True):
         break
     
 # Run test suite
-os.system('python test_riab_server.py')
+os.system('python test_all.py')
 
 # Stop the XMLRPC Riab Server
 os.system('python %s/%s --stop' % (source_path, 'riab_server.py'))
