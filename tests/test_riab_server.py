@@ -105,11 +105,9 @@ class Test_Riab_Server(unittest.TestCase):
                 assert s5 == workspace
                 
 
-    def Xtest_connection_to_geoserver(self):
+    def test_connection_to_geoserver(self):
         """Test that geoserver can be reached using layer handle"""
         
-        # FIXME(Ole): NOT YET WORKING
-        # FIXME(Ole): I think these should be defaults e.g. in config.py
         geoserver_url = 'http://localhost:8080/geoserver'
         username = 'admin'
         userpass = 'geoserver'

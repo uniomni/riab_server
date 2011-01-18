@@ -4,7 +4,8 @@
 # Purpose:  Act as the Riab API
 # Created: 01/16/2011
 
-import os
+import os, string
+import geoserver
 
 class RiabAPI():
     API_VERSION='0.1a'
@@ -48,18 +49,40 @@ class RiabAPI():
                 username:password@geoserver_url/[hazard]/shakemap_padang_20090930
             or
                 username:password@geoserver_url/shakemap_padang_20090930            
+                
+                
+            geoserver_url may optionally start with 'http://'
         """
         
+        # Separate username, password and everything following '@'
         userpass, gurl = geoserver_layer_handle.split('@')
         username, password = userpass.split(':')
-        dirs = gurl.split('/')
-        geoserver_url = dirs[0]
-        layer_name = dirs[-1]                
-        if len(dirs) == 3:
-            workspace = dirs[1][1:-1] # Strip [ and ]
+        
+        # Take care of optional http://, https:// etc
+        i = gurl.find('://')
+        split_index = i+3
+        if i > 0: 
+            url_prefix = gurl[:split_index]
+            gurl = gurl[split_index:]
         else:
-            workspace = ''
+            url_prefix = ''
             
+        # Split and get layername as last field    
+        dirs = gurl.split('/')
+        layer_name = dirs.pop()                            
+                        
+        # Take care of optional workspace enclosed in [..]    
+        i = gurl.find('/[')
+        j = gurl.find(']/')
+        if i > 0 and j > i:
+            workspace = dirs.pop()[1:-1] # Strip brackets ([ and ])            
+        else:
+            workspace = ''             # No workspace in string
+            
+        # Join remaining fields to form URL
+        geoserver_url = url_prefix + string.join(dirs, '/')
+
+        # Return    
         return username, password, geoserver_url, layer_name, workspace
     
     
@@ -76,8 +99,14 @@ class RiabAPI():
             'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' 
                     
         """
-        return 'ERROR: NO IMPLEMENTATION'
+        username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(geoserver_layer_handle)
         
+        try:
+            geoserver.Geoserver(geoserver_url, username, userpass)      
+        except Exception, msg:
+            return 'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' % (geoserver_layer_handle,msg) 
+        else:
+            return 'SUCCESS'
         
     
     def calculate(self, hazards, exposures, impact_function_id, impact, comment):
