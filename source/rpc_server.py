@@ -16,12 +16,13 @@ from common import *
 
 
 def stop_server(server_url,port):
-    url='http://%s:%s' % (server_url,port)
+    url='http://%s:%s' % (server_url, port)
     try:
         xmlrpclib.ServerProxy(url).stop()
-        print 'SUCCESS: Stopped server at %s' % url
+        print 'Stopped RPC server at %s' % url
     except socket.error:
-        print 'FAIL: No server listening at %s' % url
+        pass # Silently accept if the server is not running
+        #print 'FAIL: No server listening at %s' % url
 
 	
 class APITest():
@@ -31,7 +32,7 @@ class APITest():
         return self.API_VERSION
     
     def test(self):
-        print 'hello'
+        print 'Hello'
         return True
         
 class XMLRPCServer_overload(SimpleXMLRPCServer):
