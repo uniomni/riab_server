@@ -3,7 +3,9 @@
 import sys, os
 import unittest
 import xmlrpclib
-from config import test_url, test_workspace_name
+import pycurl, StringIO, json
+from config import test_workspace_name, geoserver_url, geoserver_username, geoserver_userpass
+from config import test_url
 
 class Test_Riab_Server(unittest.TestCase):
 
@@ -13,10 +15,10 @@ class Test_Riab_Server(unittest.TestCase):
         """Connect to test geoserver with new instance
         """
             
-        self.riab_server = xmlrpclib.ServerProxy(test_url)
+        self.api = xmlrpclib.ServerProxy(test_url)
         try:
             if not self.have_reloaded:
-                s = self.riab_server.reload()
+                s = self.api.reload()
                 self.have_reloaded = True
         except:
             print 'Warning can\'t reload classes!'
@@ -33,7 +35,7 @@ class Test_Riab_Server(unittest.TestCase):
         """
         # make sure the latest classes are being used
         
-        s = self.riab_server.reload()
+        s = self.api.reload()
         assert s.startswith('SUCCESS'), 'Problem with the reload'
         
         # Exception will be thrown if there is no server
@@ -43,7 +45,7 @@ class Test_Riab_Server(unittest.TestCase):
         """
         # make sure the latest classes are being used
         
-        s = self.riab_server.version()
+        s = self.api.version()
         assert s.startswith('0.1a'), 'Version incorrect %s' % s
         
         # Exception will be thrown if there is no server
@@ -54,7 +56,7 @@ class Test_Riab_Server(unittest.TestCase):
         """Test that handles without workspace are created correctly
         """
 
-        s = self.riab_server.create_geoserver_layer_handle('ted', 'test', 'www.geo.com', 'map', '')
+        s = self.api.create_geoserver_layer_handle('ted', 'test', 'www.geo.com', 'map', '')
         msg = 'Wrong handle returned %s' % s
         assert s == 'ted:test@www.geo.com/map', msg
         
@@ -68,7 +70,7 @@ class Test_Riab_Server(unittest.TestCase):
         geoserver_url = 'schools.out.forever:88'
         workspace = 'black'        
 
-        s = self.riab_server.create_geoserver_layer_handle(username, 
+        s = self.api.create_geoserver_layer_handle(username, 
                                                            userpass, 
                                                            geoserver_url, 
                                                            layer_name, 
@@ -84,27 +86,26 @@ class Test_Riab_Server(unittest.TestCase):
         username='alice'
         userpass='cooper'
         layer_name='poison'
-        
-        for port in ['', ':88']:
-        
-            for prefix in ['', 'html://']:
-                geoserver_url = prefix + 'schools.out.forever' + port
-            
-                for workspace in ['black', '']:
-            
-                    s = self.riab_server.create_geoserver_layer_handle(username, 
-                                                                       userpass, 
-                                                                       geoserver_url, 
-                                                                       layer_name, 
-                                                                       workspace)
 
+        for layer_name in ['poison', '']:
+            for port in ['', ':88']:
+                for prefix in ['', 'html://']:
+                    geoserver_url = prefix + 'schools.out.forever' + port
+                    
+                    for workspace in ['black', '']:
+                        s = self.api.create_geoserver_layer_handle(username, 
+                                                                           userpass, 
+                                                                           geoserver_url, 
+                                                                           layer_name, 
+                                                                           workspace)
 
-                    s1, s2, s3, s4, s5 = self.riab_server.split_geoserver_layer_handle(s)
-                    assert s1 == username
-                    assert s2 == userpass
-                    assert s3 == geoserver_url
-                    assert s4 == layer_name
-                    assert s5 == workspace
+                        s1, s2, s3, s4, s5 = self.api.split_geoserver_layer_handle(s)
+                        assert s1 == username
+                        assert s2 == userpass
+                        assert s3 == geoserver_url
+                        assert s4 == layer_name
+                        assert s5 == workspace
+        
                 
 
     def test_connection_to_geoserver(self):
@@ -116,9 +117,9 @@ class Test_Riab_Server(unittest.TestCase):
         layer_name = 'tasmania_roads'
         workspace = 'topp'
         
-        s = self.riab_server.create_geoserver_layer_handle(username, userpass, geoserver_url, layer_name, 
+        s = self.api.create_geoserver_layer_handle(username, userpass, geoserver_url, layer_name, 
                                                            workspace)
-        res = self.riab_server.check_geoserver_layer_handle(s)
+        res = self.api.check_geoserver_layer_handle(s)
         
         msg = 'Was not able to access Geoserver layer: %s' % s
         assert res == 'SUCCESS', msg
@@ -138,7 +139,7 @@ class Test_Riab_Server(unittest.TestCase):
         for var in [username, userpass, geoserver_url, test_workspace_name]:
             assert var is not None
         
-        self.riab_server.create_workspace(username, userpass, geoserver_url, test_workspace_name)
+        self.api.create_workspace(username, userpass, geoserver_url, test_workspace_name)
         
         # Check that workspace is there
         found = False
@@ -153,6 +154,62 @@ class Test_Riab_Server(unittest.TestCase):
         assert found, msg
         
         
+    def XXtest_upload_coverage(self):
+        """Test that a coverage can be uploaded and a new style is created
+        """
+        
+        # Create workspace
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)        
+        
+        # setup layer, file, sld and style names
+        layername = 'shakemap_padang_20090930'
+        raster_file = 'data/%s.asc' % layername
+        expected_output_sld_file = '%s.sld' % layername 
+        stylename = layername 
+        
+        # Form layer handle
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',   # Empty layer means derive from filename
+                                                    test_workspace_name)
+                
+        # Upload coverage
+        self.api.upload_geoserver_layer(raster_file, lh)
+
+        # Check that layer is there
+        found = False
+        page = get_web_page(os.path.join(geoserver_url, 'rest/layers'), 
+                            username=geoserver_username, 
+                            password=geoserver_userpass)
+        for line in page:
+            if line.find('rest/layers/%s.html' % layername) > 0:
+                found = True
+        
+        msg = 'Did not find layer %s in geoserver %s' % (layername, geoserver_url)
+        assert found, msg        
+        
+
+        # Test style by grabbing the json
+        c = pycurl.Curl()
+        url = ((geoserver_url+'/rest/layers/%s') % layername)
+        c.setopt(pycurl.URL, url)
+        c.setopt(pycurl.HTTPHEADER, ['Accept: text/json'])
+        c.setopt(pycurl.USERPWD, '%s:%s' % (geoserver_username, geoserver_userpass))
+        c.setopt(pycurl.VERBOSE, 0)
+        b = StringIO.StringIO()
+        c.setopt(pycurl.WRITEFUNCTION, b.write)
+        c.perform()
+
+        try:
+            d = json.loads(b.getvalue())
+            def_style = d['layer']['defaultStyle']['name']
+        except:
+            def_style = b.getvalue()
+            
+        msg =   'Expected: '+stylename
+        msg +=   'Got: '+def_style+"\n"
+        assert def_style == stylename, msg
 
             
         

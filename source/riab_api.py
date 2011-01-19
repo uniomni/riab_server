@@ -54,6 +54,14 @@ class RiabAPI():
             geoserver_url may optionally start with 'http://'
         """
         
+        # Check that handle is well formed
+        msg = 'Geoserver layer handle must have the form username:password@geoserver_url/[workspace]/layer_name. '
+        msg += 'I got %s' % geoserver_layer_handle
+        assert geoserver_layer_handle.find('@') > 0, msg
+        assert geoserver_layer_handle.find(':') > 0, msg        
+        assert geoserver_layer_handle.find('/') > 0, msg                
+        
+        
         # Separate username, password and everything following '@'
         userpass, gurl = geoserver_layer_handle.split('@')
         username, password = userpass.split(':')
@@ -125,17 +133,40 @@ class RiabAPI():
         """
         # FIXME(Ole): This does not work with the general layer handle. Perhaps reconsider general handle syntax.
         
+        if self.workspace_exists(username, userpass, geoserver_url, workspace_name):
+            # If it already exists, return silently
+            return
+        
         # Connect to Geoserver
         gs = geoserver.Geoserver(geoserver_url, username, userpass)                  
         gs.create_workspace(workspace_name, verbose=False)
                     
-        # Check that it was created 
-        try:
-            gs.get_workspace(workspace_name, verbose=False)
-        except:
+        # Check that it was indeed created 
+        if not self.workspace_exists(username, userpass, geoserver_url, workspace_name):
             msg = 'Workspace %s was not created succesfully on geoserver %s' % (workspace_name, geoserver_url)
             raise Exception(msg)
                     
+    def workspace_exists(self, username, userpass, geoserver_url, workspace_name):
+        """Check that workspace exists on geoserver
+        
+        Arguments
+            username=username
+            userpass=password 
+            geoserver_url=The URL of the geoserver   
+            workspace=name of geoserver workspace        
+            
+        Returns
+            True or False
+        """
+        
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)                  
+        try:
+            gs.get_workspace(workspace_name, verbose=False)
+        except:
+            return False
+        else:
+            return True
+        
     
     def calculate(self, hazards, exposures, impact_function_id, impact, comment):
         """Calculate the Impact Geo as a function of Hazards and Exposures
@@ -217,7 +248,26 @@ class RiabAPI():
             'SUCCESS' or 'ERROR: ....'
         
         """
-        return 'ERROR: NO IMPLEMENTATION'
+
+        # FIXME(Ole): Currently, this will ignore the layername in the handle and derive it from the filename
+        
+
+        username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(name)
+
+        # FIXME: Check that workspace exists!
+                
+        try:        
+            gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+        except Exception, msg:
+            return 'ERROR: Could not connect to geoserver %s: %s' % (geoserver_url, msg)
+
+        try:    
+            gs.upload_layer(filename=data, workspace=workspace, verbose=False)
+        except Exception, msg:
+            return 'ERROR: Could not upload file %s to geoserver %s: %s' % (data, geoserver_url, msg)        
+            
+        
+        return 'SUCCESS'
 
     
     def download_geoserver_raster_layer(self, name, bounding_box=None):

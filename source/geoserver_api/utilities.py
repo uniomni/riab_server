@@ -169,8 +169,8 @@ def curl(url, username, password, request, content_type, rest_dir, data_type, da
         msg += 'Error message: %s\n' % err
         raise Exception(msg)
         
-    if err.find('HTTP/1.1 400') > 0:
-        msg = 'Failed curl command (URL not found):\n%s\n' % cmd
+    if err.find('HTTP/1.1 405') > 0:
+        msg = 'Failed curl command (Method Not Allowed):\n%s\n' % cmd
         msg += 'Output:        %s\n' % out
         msg += 'Error message: %s\n' % err
         raise Exception(msg)        
