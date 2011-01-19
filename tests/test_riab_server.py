@@ -3,7 +3,7 @@
 import sys, os
 import unittest
 import xmlrpclib
-from config import test_url
+from config import test_url, test_workspace_name
 
 class Test_Riab_Server(unittest.TestCase):
 
@@ -122,6 +122,39 @@ class Test_Riab_Server(unittest.TestCase):
         
         msg = 'Was not able to access Geoserver layer: %s' % s
         assert res == 'SUCCESS', msg
+        
+        
+    def XXtest_create_workspace(self):            
+        """Test that new workspace can be created
+        """
+        
+        geoserver_url = 'http://localhost:8080/geoserver'
+        username = 'admin'
+        userpass = 'geoserver'
+        
+        # Create workspace
+        
+        # FIXME(Ole): XMLRPC complains: cannot marshal None unless allow_none is enabled
+        for var in [username, userpass, geoserver_url, test_workspace_name]:
+            assert var is not None
+        
+        self.riab_server.create_workspace(username, userpass, geoserver_url, test_workspace_name)
+        
+        # Check that workspace is there
+        found = False
+        page = get_web_page(os.path.join(geoserver_url, 'rest/workspaces'), 
+                            username=username, 
+                            password=userpass)
+        for line in page:
+            if line.find('rest/workspaces/%s.html' % test_workspace_name) > 0:
+                found = True
+
+        msg = 'Workspace %s was not found in %s' % (test_workspace_name, geoserver_url)        
+        assert found, msg
+        
+        
+
+            
         
 
 ################################################################################

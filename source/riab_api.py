@@ -107,7 +107,35 @@ class RiabAPI():
             return 'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' % (geoserver_layer_handle,msg) 
         else:
             return 'SUCCESS'
+
+            
+    def create_workspace(self, username, userpass, geoserver_url, workspace_name):
+        """Create new workspace on GeoServer
         
+        Arguments
+            username=username
+            userpass=password 
+            geoserver_url=The URL of the geoserver   
+            workspace=name of new geoserver workspace
+            
+        Returns
+            'SUCCESS' if complete
+            'ERROR: CANNOT CREATE WORKSPACE %s ON GEOSERVER %s - ERROR MESSAGE IS %s' 
+
+        """
+        # FIXME(Ole): This does not work with the general layer handle. Perhaps reconsider general handle syntax.
+        
+        # Connect to Geoserver
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)                  
+        gs.create_workspace(workspace_name, verbose=False)
+                    
+        # Check that it was created 
+        try:
+            gs.get_workspace(workspace_name, verbose=False)
+        except:
+            msg = 'Workspace %s was not created succesfully on geoserver %s' % (workspace_name, geoserver_url)
+            raise Exception(msg)
+                    
     
     def calculate(self, hazards, exposures, impact_function_id, impact, comment):
         """Calculate the Impact Geo as a function of Hazards and Exposures

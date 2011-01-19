@@ -161,25 +161,21 @@ def curl(url, username, password, request, content_type, rest_dir, data_type, da
     
     # Check for: HTTP/1.1 500 Internal Server Error
     # FIXME (Ole): There might be other error conditions 
-    out = open(curl_stdout).read()
+    out = open(curl_stdout).readlines()
     err = open(curl_stderr).read()
     if err.find('HTTP/1.1 500 Internal Server Error') > 0:# or err.find('HTTPError'):
-        msg = 'Failed curl command:\n%s\n' % cmd
+        msg = 'Failed curl command (Internal Server Error):\n%s\n' % cmd
         msg += 'Output:        %s\n' % out
         msg += 'Error message: %s\n' % err
         raise Exception(msg)
+        
+    if err.find('HTTP/1.1 400') > 0:
+        msg = 'Failed curl command (URL not found):\n%s\n' % cmd
+        msg += 'Output:        %s\n' % out
+        msg += 'Error message: %s\n' % err
+        raise Exception(msg)        
 
-    # FIXME (Ole): Use PIPE to return output from curl command
-    # For some reason this causes several tests to break. Leave this for another time.
-    #if verbose:
-    #    print cmd
-    #    
-    #p = pipe(cmd)     
-    #if verbose:
-    #    print p.stdout.read()
-    #    print p.stderr.read()
-    
-    #return p    
+    return out
 
 def get_bounding_box(filename, verbose=False):
     """Get bounding box for specified file using gdalinfo

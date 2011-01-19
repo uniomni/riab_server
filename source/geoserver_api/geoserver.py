@@ -66,16 +66,28 @@ class Geoserver:
         """Get workspace info from the geoserver
         """
 
-        curl(self.geoserver_url, 
-             self.geoserver_username, 
-             self.geoserver_userpass, 
-             'GET', 
-             'text/xml', 
-             'workspaces/%s' % name, 
-             '', 
-             '', 
-             verbose=verbose)
-        
+        out = curl(self.geoserver_url, 
+                   self.geoserver_username, 
+                   self.geoserver_userpass, 
+                   'GET', 
+                   'text/xml', 
+                   'workspaces/%s' % name, 
+                   '', 
+                   '', 
+                   verbose=verbose)
+
+        succes = False
+        for line in out:
+            if line.startswith('Workspace'):
+                if line.split()[1][1:-1] == name:                
+                    succes = True
+                    break
+
+        if not succes:        
+            msg = 'Could not find workspace %s in geoserver %s' % (name, self.geoserver_url)
+            raise Exception(msg)
+
+
 
     # Methods for up and downloading layers as files
     def download_coverage(self, 

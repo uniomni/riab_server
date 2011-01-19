@@ -4,7 +4,8 @@ import os
 import sys
 import numpy
 import unittest
-
+from config import test_workspace_name
+from utilities import get_web_page
 
 # Add location of source code to search path so that API can be imported
 parent_dir = os.path.split(os.getcwd())[0]
@@ -111,7 +112,31 @@ class Test_API(unittest.TestCase):
         
         msg = 'Was not able to access Geoserver layer %s: %s' % (lh, res)
         assert res == 'SUCCESS', msg               
+
         
+    def test_create_workspace(self):            
+        """Test that new workspace can be created
+        """
+        
+        geoserver_url = 'http://localhost:8080/geoserver'
+        username = 'admin'
+        userpass = 'geoserver'
+        
+        # Create workspace
+        self.api.create_workspace(username, userpass, geoserver_url, test_workspace_name)
+        
+        # Check that workspace is there
+        found = False
+        page = get_web_page(os.path.join(geoserver_url, 'rest/workspaces'), 
+                            username=username, 
+                            password=userpass)
+        for line in page:
+            if line.find('rest/workspaces/%s.html' % test_workspace_name) > 0:
+                found = True
+
+        msg = 'Workspace %s was not found in %s' % (test_workspace_name, geoserver_url)        
+        assert found, msg
+                
         
 ################################################################################
 
