@@ -5,7 +5,7 @@
 # Created: 01/16/2011
 
 import os, string
-import geoserver
+from geoserver_api import geoserver
 
 class RiabAPI():
     API_VERSION='0.1a'
