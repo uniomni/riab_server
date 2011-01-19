@@ -6,7 +6,7 @@ sudo python install_geoserver.py
 """
 
 import sys, os, commands
-from utilities import run, makedir, header, replace_string_in_file, get_shell, set_bash_variable
+from utilities import run, makedir, header 
 
 
 def install_ubuntu_packages():    
@@ -20,7 +20,7 @@ def install_ubuntu_packages():
     run(s, verbose=True)
     
     
-    for package in [ 'curl', 'python-pycurl', 'python-gdal', 'python-setuptools']:
+    for package in ['python-setuptools']:
 
                     
         s = 'apt-get -y install %s' % package
@@ -69,13 +69,13 @@ if __name__ == '__main__':
         print 'Script must be run as root e.g. using: sudo python %s' % sys.argv[0]
         import sys; sys.exit() 
 
-    print ' - Installing Riab_server Dependancies'
+    print ' - Installing Riab_server dependencies'
                 
     install_ubuntu_packages()
     install_python_packages()
     get_plugins()
     change_permissions()
     set_environment()    
-    print 'Riab_server dependancies installed. To start it run'
+    print 'Riab_server dependencies installed. To start it run'
     print 'python source/riab_server.py'
     print 'Defaults to localhost:8000'
