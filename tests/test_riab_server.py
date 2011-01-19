@@ -86,23 +86,25 @@ class Test_Riab_Server(unittest.TestCase):
         layer_name='poison'
         
         for port in ['', ':88']:
-            geoserver_url = 'schools.out.forever' + port
+        
+            for prefix in ['', 'html://']:
+                geoserver_url = prefix + 'schools.out.forever' + port
             
-            for workspace in ['black', '']:
+                for workspace in ['black', '']:
             
-                s = self.riab_server.create_geoserver_layer_handle(username, 
-                                                                   userpass, 
-                                                                   geoserver_url, 
-                                                                   layer_name, 
-                                                                   workspace)
+                    s = self.riab_server.create_geoserver_layer_handle(username, 
+                                                                       userpass, 
+                                                                       geoserver_url, 
+                                                                       layer_name, 
+                                                                       workspace)
 
 
-                s1, s2, s3, s4, s5 = self.riab_server.split_geoserver_layer_handle(s)
-                assert s1 == username
-                assert s2 == userpass
-                assert s3 == geoserver_url
-                assert s4 == layer_name
-                assert s5 == workspace
+                    s1, s2, s3, s4, s5 = self.riab_server.split_geoserver_layer_handle(s)
+                    assert s1 == username
+                    assert s2 == userpass
+                    assert s3 == geoserver_url
+                    assert s4 == layer_name
+                    assert s5 == workspace
                 
 
     def test_connection_to_geoserver(self):
