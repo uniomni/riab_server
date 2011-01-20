@@ -104,16 +104,18 @@ class RiabAPI():
             
         Returns
             'SUCCESS' if complete
-            'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' FIXME ????????
-                    
-        """
-        username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(geoserver_layer_handle)
-        
-        
-        geoserver.Geoserver(geoserver_url, username, userpass)      
+            ####'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' FIXME ????????
 
-        #    return 'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' % (geoserver_layer_handle,msg) 
-        #else:
+            
+        Note    
+            Check connection and presence of workspace. Ignore layer name.
+                                
+        """
+        username, userpass, geoserver_url, layer_name, workspace =\
+            self.split_geoserver_layer_handle(geoserver_layer_handle)
+        
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)      
+        gs.get_workspace(workspace, verbose=False)        
         
         return 'SUCCESS'
 
@@ -162,6 +164,8 @@ class RiabAPI():
             True or False
         """
         
+        # FIXME(Ole): Should this use the handle even though layername would be ignored?
+        
         gs = geoserver.Geoserver(geoserver_url, username, userpass)                  
         try:
             gs.get_workspace(workspace_name, verbose=False)
@@ -183,7 +187,7 @@ class RiabAPI():
                       (Look at REST for inspiration)
             exposure = An array of exposure levels ..[E1,E2...EN] each E is a 
                        geoserver layer path
-            impact = The output impact level
+            impact = Handle to output impact level layer
             comment = String with comment for output metadata
         
         Returns
@@ -252,14 +256,18 @@ class RiabAPI():
         
         """
 
-        # FIXME(Ole): Currently, this will ignore the layername in the handle and derive it from the filename
+        # FIXME(Ole): Currently, this will ignore the layername in the handle 
+        #             and derive it from the filename
         
 
+        # Unpack and connect
         username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(name)
-
-        # FIXME: Check that workspace exists!
-                
         gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+        
+        # Check that workspace exists
+        gs.get_workspace(workspace)
+
+        # Upload
         gs.upload_layer(filename=data, workspace=workspace, verbose=False)
         
         return 'SUCCESS'
