@@ -618,7 +618,7 @@ class Test_API(unittest.TestCase):
                                                         geoserver_url, 
                                                         exposure_data,
                                                         test_workspace_name)                                    
-            exposure_raster = self.geoserver.get_raster_data(lh, bounding_box)            
+            exposure_raster = self.api.get_raster_data(lh, bounding_box)            
                                                              
 
             lh = self.api.create_geoserver_layer_handle(geoserver_username, 
@@ -626,7 +626,7 @@ class Test_API(unittest.TestCase):
                                                         geoserver_url, 
                                                         expected_fatality_data,
                                                         test_workspace_name)                                    
-            fatality_raster = self.geoserver.get_raster_data(lh, bounding_box)         
+            fatality_raster = self.api.get_raster_data(lh, bounding_box)         
             
                                                              
             # Calculate impact
