@@ -264,7 +264,7 @@ class RiabAPI():
         try:    
             gs.upload_layer(filename=data, workspace=workspace, verbose=False)
         except Exception, msg:
-            return 'ERROR: Could not upload file %s to geoserver %s: %s' % (data, geoserver_url, msg)        
+            return 'ERROR: Could not upload file %s to geoserver %s: %s' % (data, geoserver_url, msg)     
             
         
         return 'SUCCESS'

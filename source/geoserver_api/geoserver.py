@@ -194,7 +194,7 @@ class Geoserver:
         assert extension in ['.asc', '.txt', '.tif'], msg
 
         # Check to see if the dataset has a coordinate system
-        dataset = osgeo.gdal.Open(filename, osgeo.gdal.GA_ReadOnly )
+        dataset = osgeo.gdal.Open(filename, osgeo.gdal.GA_ReadOnly)
         msg = filename+' had no Coordinate/Spatial Reference System (CRS)'
         assert dataset.GetProjectionRef().startswith('GEOGCS'), msg
 

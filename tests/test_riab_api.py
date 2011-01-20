@@ -157,7 +157,8 @@ class Test_API(unittest.TestCase):
                                                     test_workspace_name)
                 
         # Upload coverage
-        self.api.upload_geoserver_layer(raster_file, lh)
+        res = self.api.upload_geoserver_layer(raster_file, lh)
+        assert res.startswith('SUCCESS'), res        
 
         # Check that layer is there
         found = False
@@ -208,12 +209,30 @@ class Test_API(unittest.TestCase):
 
         
         
-    #def test_upload_of_coverage_without_coordinate_system(self):
-    #    """Test that upload of coverage without coordinate system fails with and AssertionError"""
-    #    
-    #    raster_file = 'data/missing_prj_shakemap_padang_20090930.tif'
-    #    self.assertRaises(AssertionError, 
-    #        self.geoserver.upload_coverage, filename=raster_file, workspace=test_workspace_name)
+    def test_upload_of_coverage_without_coordinate_system(self):
+        """Test that upload of coverage without coordinate system raises an error"""
+        
+        # Create workspace
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)        
+        
+        # setup layer, file, sld and style names
+        layername = 'missing_prj_shakemap_padang_20090930.tif'
+        raster_file = 'data/%s' % layername
+        
+        # Form layer handle
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',   # Empty layer means derive from filename
+                                                    test_workspace_name)
+        
+
+        # Upload coverage
+        res = self.api.upload_geoserver_layer(raster_file, lh)
+        assert not res.startswith('SUCCESS'), res
+                        
+        #self.assertRaises(AssertionError, 
+        #    self.api.upload_geoserver_layer, raster_file, lh)
         
 
         
