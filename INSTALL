@@ -1,1 +1,19 @@
-Installation information
+Installation information:
+
+
+To test this development version:
+
+1: Checkout the source from https://github.com/uniomni/riab_server
+2: Install GeoServer 
+   - for Ubuntu >= 9.04 run the script ./installation/install_geoserver.py
+3: Install dependencies for riab_server
+   - for Ubuntu >= 9.04 run the script ./installation/install_riab_server.py
+4: Run the regression test suite in ./tests
+   - python run_tests_from_scratch.py
+   - OR
+   - python start_all_servers.py; python test_all.py
+
+   
+   
+      
+   

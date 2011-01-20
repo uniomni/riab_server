@@ -1,3 +1,6 @@
 Risk-in-a-Box (RIAB) Server is a Python package for modelling the impact from natural hazards. 
 
 RIAB is developed at the Australia-Indonesia Facility for Disaster Reduction (AIFDR) in Jakarta as an Open Source project. 
+
+
+See INSTALL for details on installation and running the test suite.
