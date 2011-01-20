@@ -1,0 +1,8 @@
+*~
+*.pyc
+*.err
+*.out
+*.stderr
+*.stdout
+*.log
+*.wpr
