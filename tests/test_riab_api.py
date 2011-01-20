@@ -228,10 +228,18 @@ class Test_API(unittest.TestCase):
         
 
         # Upload coverage
-        res = self.api.upload_geoserver_layer(raster_file, lh)
-        assert not res.startswith('SUCCESS'), res
-
-        # FIXME(Ole): It is sad if we can't use exceptions with XMLRPC
+        try:
+            res = self.api.upload_geoserver_layer(raster_file, lh)
+        except:
+            # FIXME(Ole): Define custom exception in riab_api for this condition.
+            # Exception raised as planned
+            pass
+        else:
+            msg = 'Exception should have been raised when layer has no projection file'
+            raise Exception(msg)
+            
+        #assert not res.startswith('SUCCESS'), res
+        #
         #self.assertRaises(AssertionError, 
         #    self.api.upload_geoserver_layer, raster_file, lh)
         
@@ -292,20 +300,36 @@ class Test_API(unittest.TestCase):
         """Test that a coverage can be downloaded
         """
     
-        # Upload first to make sure data is there
-        self.geoserver.upload_layer(filename='data/shakemap_padang_20090930.asc', 
-                                    workspace=test_workspace_name)
+        # Upload first to make sure data is there    
+        
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)
+
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',   # Empty layer means derive from filename
+                                                    test_workspace_name)
+
+        res = self.api.upload_geoserver_layer('data/shakemap_padang_20090930.asc', lh)
+        assert res.startswith('SUCCESS'), res                
+                                    
     
         # Apply known bounding box manually read from the Geoserver
         bounding_box = [96.956, -5.519, 104.641, 2.289]
                         
         # Download using the API and test that the data is the same.
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    'shakemap_padang_20090930',
+                                                    test_workspace_name)        
+        
         downloaded_tif = 'downloaded_shakemap.tif'
-        self.geoserver.download_coverage(coverage_name='shakemap_padang_20090930',
-                                         bounding_box=bounding_box,
-                                         workspace=test_workspace_name,
-                                         output_filename=downloaded_tif,
-                                         verbose=False)
+        self.api.download_coverage(coverage_name='shakemap_padang_20090930',
+                                   bounding_box=bounding_box,
+                                   workspace=test_workspace_name,
+                                   output_filename=downloaded_tif,
+                                   verbose=False)
                                          
         # Verify existence of downloaded file
         msg = 'Downloaded coverage %s does not exist' % downloaded_tif

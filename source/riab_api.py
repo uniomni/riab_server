@@ -104,17 +104,18 @@ class RiabAPI():
             
         Returns
             'SUCCESS' if complete
-            'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' 
+            'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' FIXME ????????
                     
         """
         username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(geoserver_layer_handle)
         
-        try:
-            geoserver.Geoserver(geoserver_url, username, userpass)      
-        except Exception, msg:
-            return 'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' % (geoserver_layer_handle,msg) 
-        else:
-            return 'SUCCESS'
+        
+        geoserver.Geoserver(geoserver_url, username, userpass)      
+
+        #    return 'ERROR: CANNOT CONNECT TO GEOSERVER %s - ERROR MESSAGE IS %s' % (geoserver_layer_handle,msg) 
+        #else:
+        
+        return 'SUCCESS'
 
             
     def create_workspace(self, username, userpass, geoserver_url, workspace_name):
@@ -135,7 +136,7 @@ class RiabAPI():
         
         if self.workspace_exists(username, userpass, geoserver_url, workspace_name):
             # If it already exists, return silently
-            return
+            return 'SUCCESS'
         
         # Connect to Geoserver
         gs = geoserver.Geoserver(geoserver_url, username, userpass)                  
@@ -145,6 +146,8 @@ class RiabAPI():
         if not self.workspace_exists(username, userpass, geoserver_url, workspace_name):
             msg = 'Workspace %s was not created succesfully on geoserver %s' % (workspace_name, geoserver_url)
             raise Exception(msg)
+            
+        return 'SUCCESS'    
                     
     def workspace_exists(self, username, userpass, geoserver_url, workspace_name):
         """Check that workspace exists on geoserver
@@ -256,26 +259,22 @@ class RiabAPI():
 
         # FIXME: Check that workspace exists!
                 
-        try:        
-            gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
-        except Exception, msg:
-            return 'ERROR: Could not connect to geoserver %s: %s' % (geoserver_url, msg)
-
-        try:    
-            gs.upload_layer(filename=data, workspace=workspace, verbose=False)
-        except Exception, msg:
-            return 'ERROR: Could not upload file %s to geoserver %s: %s' % (data, geoserver_url, msg)     
-            
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+        gs.upload_layer(filename=data, workspace=workspace, verbose=False)
         
         return 'SUCCESS'
 
     
-    def download_geoserver_raster_layer(self, name, bounding_box=None):
+    #FIXME(Ole): Keyword arguments appear to be a no-no in XMLRPC. Is that really the case?
+    #def download_geoserver_raster_layer(self, name, bounding_box=None):
+    def download_geoserver_raster_layer(self, name, bounding_box):
         """Upload data to the specified geoserver
         
         Keyword arguments
             name = the fully qualified name of the layer i.e. 'username:password@geoserver_url:shakemap_padang_20090930'
-            bounding box = array bounds of the downloaded map e.g [96.956,-5.519,104.641,2.289] (default None, in which case all data is returned)
+            bounding box = array bounds of the downloaded map e.g [96.956,-5.519,104.641,2.289] 
+            #(default None, in which case all data is returned)
+            (default []??, in which case all data is returned)
           
         
         Returns
