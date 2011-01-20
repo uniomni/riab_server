@@ -6,9 +6,9 @@ import numpy
 import unittest
 import pycurl, StringIO, json
 from config import test_workspace_name, geoserver_url, geoserver_username, geoserver_userpass
-        
+       
+from utilities import get_web_page, get_bounding_box
 
-from utilities import get_web_page
 
 # Add location of source code to search path so that API can be imported
 parent_dir = os.path.split(os.getcwd())[0]
@@ -17,7 +17,6 @@ sys.path.append(source_path)
 
 # Import everything from the API
 from riab_api import *
-
 
 class Test_API(unittest.TestCase):
 
@@ -376,6 +375,58 @@ class Test_API(unittest.TestCase):
                 
                 #if not numpy.allclose(x1, x2, rtol=1.0e-1):
                 #    print msg 
+        
+         
+    # FIXME(Ole): This test still fails. Talk to OpenGeo        
+    def Xtest_bounding_box_of_downloaded_coverage(self):
+        """Test that bounding box for downloaded coverage is correct
+        """
+    
+        # Upload first to make sure data is there
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)
+
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    'shakemap_padang_20090930',
+                                                    test_workspace_name)
+
+        uploaded_asc = 'data/shakemap_padang_20090930.asc'
+        res = self.api.upload_geoserver_layer(uploaded_asc, lh)
+        assert res.startswith('SUCCESS'), res                
+
+    
+        # Get bounding box for the uploaded TIF file (using function from the underlying geoserver interface)
+        bounding_box = get_bounding_box('shakemap_padang_20090930.tif')
+    
+        # Check that it is the same as what was manually read from the Geoserver
+        ref_bounding_box = [96.956, -5.519, 104.641, 2.289]
+        msg = 'Bounding box from uploaded TIF and what was read from Geoserver differ'
+        assert numpy.allclose(bounding_box, ref_bounding_box, rtol=1e-3), msg
+    
+    
+    
+        # Download using the API and test that the data is the same.
+        downloaded_tif = 'downloaded_shakemap.tif'
+        self.api.download_geoserver_raster_layer(lh,
+                                                 ref_bounding_box,
+                                                 downloaded_tif)
+                                         
+        # Verify existence of downloaded file
+        msg = 'Downloaded coverage %s does not exist' % downloaded_tif
+        assert downloaded_tif in os.listdir('.'), msg
+                                         
+        # Get bounding box for the downloaded TIF file (and verify it is a valid TIF file)
+        bounding_box = get_bounding_box(downloaded_tif)
+        
+        # Check that it is the same as what was manually read from the Geoserver
+        msg = 'Bounding box from downloaded file %s did not match expected values:\n' % downloaded_tif
+        msg += 'File has bbox: %s\n' % str(bounding_box)
+        msg += 'Expected bbox: %s' % str(ref_bounding_box) 
+        assert numpy.allclose(bounding_box, ref_bounding_box, rtol=1e-3), msg        
+                                                                                                  
+        
+        
         
 ################################################################################
 
