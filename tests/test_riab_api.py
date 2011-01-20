@@ -230,11 +230,88 @@ class Test_API(unittest.TestCase):
         # Upload coverage
         res = self.api.upload_geoserver_layer(raster_file, lh)
         assert not res.startswith('SUCCESS'), res
-                        
+
+        # FIXME(Ole): It is sad if we can't use exceptions with XMLRPC
         #self.assertRaises(AssertionError, 
         #    self.api.upload_geoserver_layer, raster_file, lh)
         
 
+        
+    def test_upload_coverage2(self):
+        """Test that a coverage (with extension .txt) can be uploaded and a new style is created
+        """
+        # FIXME: (Shoaib) Breaking for me with following log message: 
+        # 10 Aug 20:07:12 INFO [catalog.rest] - PUT file, mimetype: image/tif
+        # 10 Aug 20:07:12 INFO [catalog.rest] - Using existing coverage store: mmi_lembang_68
+        # 10 Aug 20:07:12 WARN [gce.geotiff] - I/O error reading image metadata!
+        # Looks like its loading it as a geoserver - geoserver goes half way to creating the 
+        # new resource: so it creates a coveragestore and coverage but not layer 
+        # Weird (Ole): It works on my systems (Ubuntu 9.04 and 10.04)
+        
+        layername = 'mmi_lembang_68'
+        raster_file = 'data/%s.txt' % layername
+        expected_output_sld_file = '%s.sld' % layername 
+        stylename = layername 
+
+        # Create workspace
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)
+        
+        # Form layer handle
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',   # Empty layer means derive from filename
+                                                    test_workspace_name)
+        
+        # Upload coverage
+        res = self.api.upload_geoserver_layer(raster_file, lh)
+        assert res.startswith('SUCCESS'), res        
+        
+        c = pycurl.Curl()
+        url = ((geoserver_url+'/rest/layers/%s') % layername)
+        c.setopt(pycurl.URL, url)
+        c.setopt(pycurl.HTTPHEADER, ['Accept: text/json'])
+        c.setopt(pycurl.USERPWD, '%s:%s' % (geoserver_username, geoserver_userpass))
+        c.setopt(pycurl.VERBOSE, 0)
+        b = StringIO.StringIO()
+        c.setopt(pycurl.WRITEFUNCTION, b.write)
+        c.perform()
+        
+        try:
+            d = json.loads(b.getvalue())
+            def_style = d['layer']['defaultStyle']['name']
+        except:
+            def_style = b.getvalue()
+        msg =   'Expected: '+stylename
+        msg +=  ' Got: '+def_style+'\n'
+
+        assert def_style == stylename, msg
+
+
+    def Xtest_download_coverage(self):
+        """Test that a coverage can be downloaded
+        """
+    
+        # Upload first to make sure data is there
+        self.geoserver.upload_layer(filename='data/shakemap_padang_20090930.asc', 
+                                    workspace=test_workspace_name)
+    
+        # Apply known bounding box manually read from the Geoserver
+        bounding_box = [96.956, -5.519, 104.641, 2.289]
+                        
+        # Download using the API and test that the data is the same.
+        downloaded_tif = 'downloaded_shakemap.tif'
+        self.geoserver.download_coverage(coverage_name='shakemap_padang_20090930',
+                                         bounding_box=bounding_box,
+                                         workspace=test_workspace_name,
+                                         output_filename=downloaded_tif,
+                                         verbose=False)
+                                         
+        # Verify existence of downloaded file
+        msg = 'Downloaded coverage %s does not exist' % downloaded_tif
+        assert downloaded_tif in os.listdir('.'), msg
+        
+        # FIXME: Convert downloaded data to ascii and compare:
         
                                 
         

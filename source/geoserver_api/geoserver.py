@@ -6,6 +6,7 @@ from utilities import get_web_page, run, curl, get_pathname_from_package
 import numpy
 import coverage
 import raster
+import sld_template
 import osgeo.gdal
 import pycurl
 import StringIO
@@ -215,7 +216,6 @@ class Geoserver:
         else:
             # Convert to Geotiff
             generate_sld = True            
-            
             cmd = 'gdal_translate -ot Float64 -of GTiff -co "PROFILE=GEOTIFF" %s %s' % (filename, 
                                                                                         upload_filename)
             if verbose:
@@ -475,17 +475,11 @@ class Geoserver:
     def create_raster_sld(self, filename, quantiles=False, verbose=False):
         """given a raster file and a predefined SLD template it should find the min,max,nodata values
         for the dataset and create a custom style with a color map using the predefined template sld
-        which is located at: ./sld_templates/sld_template.xml
+        which is located in module sld_template.py
         
         If quantiles is True, 10 quantiles will be used for colour coding. Othewise 10 equidistant intervals will be used.
         """
 
-        sld_template = get_pathname_from_package('api')+'/sld_templates/sld_template.xml'        
-        if not os.path.isfile(sld_template):
-            msg = 'Could not find: '+sld_template
-            raise Exception(msg)
-
-        
         pathname, extension = os.path.splitext(filename)
         layername = os.path.basename(pathname)
         
@@ -501,8 +495,7 @@ class Geoserver:
         
         # Write the SLD file    
         sld = layername+'.sld'
-        f = open(sld_template, 'r')
-        text = f.read()
+        text = sld_template.sld_template
 
         text = text.replace('MIN',str(levels[0]))
         text = text.replace('MAX',str(levels[-1]))
