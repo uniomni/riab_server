@@ -513,6 +513,7 @@ class Test_API(unittest.TestCase):
                                                         test_workspace_name)
 
             self.api.upload_geoserver_layer(output_file, lh)
+            
             # Check that layer is there
             found = False
             page = get_web_page(os.path.join(geoserver_url, 'rest/layers'), 
@@ -668,6 +669,93 @@ class Test_API(unittest.TestCase):
             assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-5)
                                           
 
+                                          
+    def test_impact_model_using_riab_api(self):
+        """Test that impact model can be computed correctly using riab api
+        """
+        
+        # Common variables
+        bounding_box = [96.956, -5.519, 104.641, 2.289]        
+        
+        # Upload hazard data
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',
+                                                    test_workspace_name)
+
+        hazard_level = 'shakemap_padang_20090930'                                                    
+        self.api.upload_geoserver_layer('data/%s.asc' % hazard_level, lh)
+        
+                    
+        for exposure_data, expected_fatality_data in [('population_padang_1', 'fatality_padang_1'),
+                                                      ('population_padang_2', 'fatality_padang_2')]:
+            
+            # Upload exposure and expected fatalities
+            self.api.upload_geoserver_layer('data/%s.asc' % exposure_data, lh)
+            self.api.upload_geoserver_layer('data/%s.asc' % expected_fatality_data, lh)
+            
+            # Create handles for hazard and exposure
+            haz_handle = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                                geoserver_userpass, 
+                                                                geoserver_url, 
+                                                                hazard_level,
+                                                                test_workspace_name)            
+
+            exp_handle = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                                geoserver_userpass, 
+                                                                geoserver_url, 
+                                                                exposure_data,
+                                                                test_workspace_name)  
+            
+            # Get raster for for expected impact result                                             
+            lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                        geoserver_userpass, 
+                                                        geoserver_url, 
+                                                        expected_fatality_data,
+                                                        test_workspace_name)    
+                                                                                               
+            reference_raster = self.api.get_raster_data(lh, bounding_box)         
+            
+            # Create handle for calculated result
+            imp_handle = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                                geoserver_userpass, 
+                                                                geoserver_url, 
+                                                                expected_fatality_data + '_calculated_by_riab',
+                                                                test_workspace_name)                
+                                                             
+            # Calculate impact using API: using default impact function for the moment
+            self.api.calculate(haz_handle, exp_handle, 0, imp_handle, bounding_box, '')
+            
+            # Download calculated layer 
+            calculated_raster = self.api.get_raster_data(imp_handle, bounding_box)         
+
+            # Extract calculated and reference data
+            C = calculated_raster.get_data()            
+            R = reference_raster.get_data()
+            
+            R = R[:-1,:-1] # FIXME(Ole): Hack - GeoServer does not preserve this
+
+            assert numpy.allclose(C.shape, R.shape)
+                        
+            # Verify correctness
+            msg = 'Computed impact not as expected'
+            
+            err = C-R
+
+            
+            # FIXME(Ole): Look at these tolerances once bounding box and precision issues with GDAL and Geoserver have been resolved.
+            max_dif = numpy.max(numpy.abs(err[:]))
+            #print 'max_dif', max_dif
+            assert max_dif < 1.0e-2, msg
+            
+            rel_dif = max_dif/numpy.max(numpy.abs(R[:]))
+            #print 'rel_dif', rel_dif            
+            assert rel_dif < 1.0e-2, msg
+                        
+            assert numpy.allclose(C, R, rtol=1.0e-6, atol=1.0e-2), msg
+            
+                                          
     def test_upload_vector(self):
         """Test that vector data can be uploaded
         """
@@ -704,9 +792,6 @@ class Test_API(unittest.TestCase):
         
         # FIXME (Ole): Download and test
 
-        
-        
-        
         
         
 ################################################################################

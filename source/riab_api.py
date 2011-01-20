@@ -6,6 +6,7 @@
 
 import os, string
 from geoserver_api import geoserver
+from geoserver_api.raster import write_coverage_to_ascii
 
 class RiabAPI():
     API_VERSION='0.1a'
@@ -175,19 +176,20 @@ class RiabAPI():
             return True
         
     
-    def calculate(self, hazards, exposures, impact_function_id, impact, comment):
+    def calculate(self, hazards, exposures, impact_function_id, impact, bounding_box, comment):
         """Calculate the Impact Geo as a function of Hazards and Exposures
         
         Arguments
             impact_function_id=Id of the impact function to be run 
                                (fully qualified path (from base path))
-            hazards = An array of hazard levels .. [H1,H2..HN] each H is a geoserver layer path 
+            hazards = A list of hazard levels .. [H1,H2..HN] each H is a geoserver layer path 
                       where each layer follows the format 
                       username:userpass@geoserver_url:layer_name 
                       (Look at REST for inspiration)
-            exposure = An array of exposure levels ..[E1,E2...EN] each E is a 
+            exposure = A list of exposure levels ..[E1,E2...EN] each E is a 
                        geoserver layer path
             impact = Handle to output impact level layer
+            bounding_box = ...
             comment = String with comment for output metadata
         
         Returns
@@ -197,8 +199,66 @@ class RiabAPI():
                     'ERROR: GEOSERVER %s': Failed to connect to the geoserver
                     'WARNING: PROJECTION UNKNOWN %s': A layer does not have projection information
                      error-string if fail
+                     
+        Note
+            hazards and exposure may be lists of handles or just a single handle each.             
         """
-        return 'ERROR: NO IMPLEMENTATION'
+        
+        # Make sure hazards and exposures are lists
+        if type(hazards) != type([]):
+            hazards = [hazards]
+            
+        if type(exposures) != type([]):
+            exposures = [exposures]            
+        
+        # Download data - FIXME(Ole): Currently only raster
+        
+        hazard_layers = []
+        for hazard in hazards:
+            raster = self.get_raster_data(hazard, bounding_box)
+            H = raster.get_data()
+            hazard_layers.append(H)
+
+        exposure_layers = []
+        for exposure in exposures:
+            raster = self.get_raster_data(exposure, bounding_box)
+            E = raster.get_data()
+            exposure_layers.append(E)
+                        
+        # Pass hazard and exposure arrays on to plugin    
+        # FIXME, for the time being we just calculate the fatality function assuming only one of each layer.
+        
+        H = hazard_layers[0]
+        E = exposure_layers[0]
+
+        # Calculate impact
+        a = 0.97429
+        b = 11.037
+        F = 10**(a*H-b)*E    
+        
+        # Upload result (FIXME(Ole): still super hacky and not at all general)
+        username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(impact)
+        
+        output_file = 'data/%s.asc' % layer_name
+        write_coverage_to_ascii(F, output_file, 
+                                xllcorner = bounding_box[0],
+                                yllcorner = bounding_box[1],
+                                cellsize=0.030741064,
+                                nodata_value=-9999,
+                                # FIXME(Ole): Need to get projection for haz and exp from GeoServer. For now use example.
+                                projection=open('data/test_grid.prj').read()) 
+                                                
+        # And upload it again
+        lh = self.create_geoserver_layer_handle(username, 
+                                                userpass, 
+                                                geoserver_url, 
+                                                '',
+                                                workspace)
+
+        self.upload_geoserver_layer(output_file, lh)
+        
+        
+        return 'SUCCES'
     
     
     def suggest_impact_func_ids(self, hazards, exposures):
@@ -296,13 +356,14 @@ class RiabAPI():
         if bounding_box == [] or bounding_box == '':
             bounding_box = None
         
+        # Unpack and connect
         username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(name)
-
-        # FIXME: Check that workspace exists!
-                
         gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
 
-                
+        # Check that workspace exists
+        gs.get_workspace(workspace)
+        
+        # Download
         gs.download_coverage(layer_name, 
                              bounding_box, 
                              output_filename=filename, 
@@ -331,20 +392,21 @@ class RiabAPI():
 
         if bounding_box == [] or bounding_box == '':
             bounding_box = None
-        
+
+        # Unpack and connect
         username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(name)
-
-        # FIXME: Check that workspace exists!
-                
         gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+        
+        # Check that workspace exists
+        gs.get_workspace(workspace)
 
-
+        # Get raster data
         raster = gs.get_raster_data(layer_name, 
                                     bounding_box, 
                                     workspace, 
                                     verbose=False)
 
-        # FIXME(Ole): Do we really need 'SUCCESS'?
+        # FIXME(Ole): Do we really need to return 'SUCCESS'?
         return raster
         
             

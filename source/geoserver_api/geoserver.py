@@ -127,8 +127,13 @@ class Geoserver:
         # Get coverage    
         wcs_url = os.path.join(self.geoserver_url, 'wcs')
         layer_name = '%s:%s' % (workspace, coverage_name)
-        
-        c = coverage.Coverage(wcs_url, layer_name)
+
+        try:
+            c = coverage.Coverage(wcs_url, layer_name)
+        except KeyError, e:
+            msg = 'Could not download layer %s from %s' % (layer_name, wcs_url)
+            raise KeyError(msg)
+            
         c.download(format=format, bounding_box=bounding_box, outputfile=output_filename)
 
         # Convert downloaded data to ASCII (without FORCE_CELLSIZE we get a warning suggesting this option)
