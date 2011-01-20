@@ -12,6 +12,9 @@ To test this development version:
    - python run_tests_from_scratch.py
    - OR
    - python start_all_servers.py; python test_all.py
+5: Run the examples in ./examples
+   - python build_demonstration_server.py
+      
 
    
    
