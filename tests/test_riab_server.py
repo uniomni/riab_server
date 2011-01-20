@@ -136,6 +136,7 @@ class Test_Riab_Server(unittest.TestCase):
         # Create workspace
         
         # FIXME(Ole): XMLRPC complains: cannot marshal None unless allow_none is enabled
+        # FIXME(Ole): However, no variable is None here. Does my head in.
         for var in [username, userpass, geoserver_url, test_workspace_name]:
             assert var is not None
         

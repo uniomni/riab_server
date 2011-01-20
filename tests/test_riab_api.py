@@ -237,11 +237,6 @@ class Test_API(unittest.TestCase):
         else:
             msg = 'Exception should have been raised when layer has no projection file'
             raise Exception(msg)
-            
-        #assert not res.startswith('SUCCESS'), res
-        #
-        #self.assertRaises(AssertionError, 
-        #    self.api.upload_geoserver_layer, raster_file, lh)
         
 
         
