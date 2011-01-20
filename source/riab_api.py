@@ -267,22 +267,42 @@ class RiabAPI():
     
     #FIXME(Ole): Keyword arguments appear to be a no-no in XMLRPC. Is that really the case?
     #def download_geoserver_raster_layer(self, name, bounding_box=None):
-    def download_geoserver_raster_layer(self, name, bounding_box):
+    def download_geoserver_raster_layer(self, name, bounding_box, filename):
         """Upload data to the specified geoserver
         
-        Keyword arguments
+        Arguments
             name = the fully qualified name of the layer i.e. 'username:password@geoserver_url:shakemap_padang_20090930'
             bounding box = array bounds of the downloaded map e.g [96.956,-5.519,104.641,2.289] 
             #(default None, in which case all data is returned)
             (default []??, in which case all data is returned)
           
+            filename: Name of file where layer is stored
         
         Returns
+            FIXME(Ole): What is meant by this return value ?
             layerdata = the layer data as a tif, error string if there are any errors
         
         Note: Exceptions are expected to propagate through XMLRPC 
         """
-        return 'ERROR: NO IMPLEMENTATION'
+
+        if bounding_box == [] or bounding_box == '':
+            bounding_box = None
+        
+        username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(name)
+
+        # FIXME: Check that workspace exists!
+                
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+
+                
+        gs.download_coverage(layer_name, 
+                             bounding_box, 
+                             output_filename=filename, 
+                             workspace=workspace, 
+                             format='GeoTIFF',
+                             verbose=False)
+        
+        return 'SUCCESS'
     
     
     def download_geoserver_vector_layer(self):

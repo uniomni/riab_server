@@ -291,12 +291,11 @@ class Test_API(unittest.TestCase):
         assert def_style == stylename, msg
 
 
-    def Xtest_download_coverage(self):
+    def test_download_coverage(self):
         """Test that a coverage can be downloaded
         """
     
         # Upload first to make sure data is there    
-        
         self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)
 
         lh = self.api.create_geoserver_layer_handle(geoserver_username, 
@@ -305,7 +304,8 @@ class Test_API(unittest.TestCase):
                                                     '',   # Empty layer means derive from filename
                                                     test_workspace_name)
 
-        res = self.api.upload_geoserver_layer('data/shakemap_padang_20090930.asc', lh)
+        uploaded_asc = 'data/shakemap_padang_20090930.asc'
+        res = self.api.upload_geoserver_layer(uploaded_asc, lh)
         assert res.startswith('SUCCESS'), res                
                                     
     
@@ -320,19 +320,62 @@ class Test_API(unittest.TestCase):
                                                     test_workspace_name)        
         
         downloaded_tif = 'downloaded_shakemap.tif'
-        self.api.download_coverage(coverage_name='shakemap_padang_20090930',
-                                   bounding_box=bounding_box,
-                                   workspace=test_workspace_name,
-                                   output_filename=downloaded_tif,
-                                   verbose=False)
+        self.api.download_geoserver_raster_layer(lh,
+                                                 bounding_box,
+                                                 downloaded_tif) # Output filename
+                                                 
                                          
-        # Verify existence of downloaded file
+        # Verify existence of downloaded files
         msg = 'Downloaded coverage %s does not exist' % downloaded_tif
         assert downloaded_tif in os.listdir('.'), msg
         
-        # FIXME: Convert downloaded data to ascii and compare:
+        downloaded_asc = downloaded_tif[:-4] + '.asc'
+        msg = 'Downloaded coverage %s does not exist' % downloaded_asc
+        assert downloaded_asc in os.listdir('.'), msg        
         
-                                
+        downloaded_prj = downloaded_tif[:-4] + '.prj'
+        msg = 'Downloaded coverage %s does not exist' % downloaded_prj
+        assert downloaded_prj in os.listdir('.'), msg                
+        
+        
+        # Compare values in ascii files
+        fid1 = open(uploaded_asc)
+        s1 = fid1.readlines()
+        
+        fid2 = open(downloaded_asc)        
+        s2 = fid2.readlines()        
+        
+        #msg = 'Number of rows have changed: %i, %i' % (len(s1), len(s2))
+        #assert len(s1) == len(s2), msg
+        # FIXME(Ole): ascii files differ slightly in number of rows, columns, and origin.
+        # Someone, please look into this along with the bounding box issue.
+        
+        # Compare some of the numbers
+        
+        for line_no in [6, 11, 37, 89, 113]:
+            fields1 = s1[line_no].split()
+            fields2 = s2[line_no].split()        
+        
+            # FIXME(Ole): number of columns differ by 1 (one). Why?
+            #assert len(fields1) == len(fields2)
+        
+            for i in range(len(fields2)):
+            
+                x1 = float(fields1[i])
+                x2 = float(fields2[i])                
+                
+                #print line_no, i, x1, x2                
+                
+                absdif = numpy.abs(x1-x2)
+                reldif = absdif/numpy.abs(x2)
+                msg = 'Absolute difference |%f-%f| = %f. Relative = %f' % (x1, x2, absdif, reldif)
+                
+
+                # FIXME(Ole): Not thrilled by this high tolerance need for some of the numbers
+                assert numpy.allclose(x1, x2, rtol=1.0e-1)
+                
+                #if not numpy.allclose(x1, x2, rtol=1.0e-1):
+                #    print msg 
         
 ################################################################################
 
