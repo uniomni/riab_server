@@ -667,6 +667,47 @@ class Test_API(unittest.TestCase):
             assert numpy.abs(F-I.flat[idx]) < 2.0e-6                
             assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-5)
                                           
+
+    def test_upload_vector(self):
+        """Test that vector data can be uploaded
+        """
+        
+        #FIXME:  and a new style should be created
+        
+        # Try using the shape filename
+        layername = 'bridge_S68_WestJava'
+        vector_file = 'data/%s.shp' % layername
+
+        
+        # Upload to test workspace
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',
+                                                    test_workspace_name)
+        self.api.upload_geoserver_layer(vector_file, lh) 
+        
+        # Check that layer is there
+        layername = os.path.basename(os.path.splitext(vector_file)[0])
+        
+        found = False
+        page = get_web_page(os.path.join(geoserver_url, 'rest/layers'), 
+                            username=geoserver_username, 
+                            password=geoserver_userpass)
+        for line in page:
+            if line.find('rest/layers/%s.html' % layername) > 0:
+                found = True
+
+
+        msg = 'Layer %s was not found in %s' % (layername, geoserver_url)        
+        assert found, msg
+        
+        # FIXME (Ole): Download and test
+
+        
+        
+        
+        
         
 ################################################################################
 

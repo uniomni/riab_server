@@ -3,7 +3,8 @@
 
 import os 
 import numpy
-import osgeo
+
+from osgeo import gdal
 
 
 # FIXME (Ole): Gdal rounds everything to single precision. Wrote to the mailing list with a test example 6th August 2010  
@@ -17,7 +18,7 @@ class Raster:
     
     def __init__(self, filename):
     
-        fid = osgeo.gdal.Open(filename, osgeo.gdal.GA_ReadOnly)
+        fid = gdal.Open(filename, gdal.GA_ReadOnly)
         if fid is None:
             msg = 'Could not open file %s' % filename            
             raise Exception(msg)            
@@ -36,7 +37,7 @@ class Raster:
         self.filename = filename
         self.name = coveragename
         self.band = band
-        
+
         # Backwards compatibility - remove
         self.data = self.get_data(nan=True)
 
@@ -147,7 +148,7 @@ class Raster:
 #It contains everything you need to go from pixel space to coordinate space.
 #This is how you would normally use it:
 #
-#dataset = osgeo.gdal.Open(filename, osgeo.gdal.GA_ReadOnly) geotransform = dataset.GetGeoTransform()
+#dataset = gdal.Open(filename, gdal.GA_ReadOnly) geotransform = dataset.GetGeoTransform()
 #
 ## origin - top left
 #x_origin    = geotransform[0] # top left x
