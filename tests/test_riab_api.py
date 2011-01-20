@@ -19,7 +19,7 @@ sys.path.append(source_path)
 from riab_api import *
 
 # Low level functions for some of the testing
-from geoserver_api.raster import read_coverage, write_coverage_to_ascii
+from geoserver_api.raster import read_coverage, write_coverage_to_ascii, read_coverage_asc
 
 class Test_API(unittest.TestCase):
 
@@ -523,6 +523,57 @@ class Test_API(unittest.TestCase):
                     found = True
                                                                                                           
             assert found
+            
+            
+
+    def test_impact_model_local_data(self):
+        """Test that impact model can be computed correctly using local test data files
+        This is a good baseline for precision if using GDAL, say
+        """
+            
+    
+        # FIXME (Ole): We can switch to the GDAL version of read_coverage
+        # once we know how to get it to use double precision.
+        
+                
+        # Fatality model parameters
+        a = 0.97429
+        b = 11.037
+        
+        hazard_level = read_coverage_asc('data/shakemap_padang_20090930.asc')
+        
+        for exposure_data, expected_fatality_data in [('population_padang_1', 'fatality_padang_1'),
+                                                      ('population_padang_2', 'fatality_padang_2')]:
+    
+            exposure_values = read_coverage_asc('data/%s.asc' % exposure_data)
+            expected_fatality_values = read_coverage_asc('data/%s.asc' % expected_fatality_data)            
+    
+            # Calculate impact
+            E = exposure_values.data
+            H = hazard_level.data
+            I = expected_fatality_values.data
+            
+            F = 10**(a*H-b)*E 
+            
+            # Verify correctness            
+            msg = 'Computed impact not as expected'
+            err = I-F            
+            #assert numpy.max(numpy.abs(err[:])) < 1.0e-6, msg
+            #assert numpy.allclose(I, F, rtol=1.0e-15), msg
+            
+            # Verify correctness at selected points
+            idx = numpy.argmax(H) # Highest hazard level
+            F = 10**(a*H.flat[idx]-b)*E.flat[idx] 
+            #print
+            #print 'Res (H)', F, I.flat[idx], F-I.flat[idx]
+            assert numpy.abs(F-I.flat[idx]) < 1.0e-12            
+            assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-12)                                        
+            
+            idx = numpy.argmax(E) # Highest population level
+            F = 10**(a*H.flat[idx]-b)*E.flat[idx] 
+            #print 'Res (P)', F, I.flat[idx], F-I.flat[idx]            
+            assert numpy.abs(F-I.flat[idx]) < 1.0e-12                  
+            assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-12)                                        
         
 ################################################################################
 
