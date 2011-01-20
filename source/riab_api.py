@@ -268,7 +268,7 @@ class RiabAPI():
     #FIXME(Ole): Keyword arguments appear to be a no-no in XMLRPC. Is that really the case?
     #def download_geoserver_raster_layer(self, name, bounding_box=None):
     def download_geoserver_raster_layer(self, name, bounding_box, filename):
-        """Upload data to the specified geoserver
+        """Download raster file from the specified geoserver
         
         Arguments
             name = the fully qualified name of the layer i.e. 'username:password@geoserver_url:shakemap_padang_20090930'
@@ -276,7 +276,7 @@ class RiabAPI():
             #(default None, in which case all data is returned)
             (default []??, in which case all data is returned)
           
-            filename: Name of file where layer is stored
+            filename: Name of file where layer is stored # FIXME(Ole): Actually no need as default is there
         
         Returns
             FIXME(Ole): What is meant by this return value ?
@@ -303,7 +303,43 @@ class RiabAPI():
                              verbose=False)
         
         return 'SUCCESS'
-    
+
+        
+        
+    def get_raster_data(self, name, bounding_box):
+        """Get raster data from the specified geoserver as a numeric array
+        
+        Arguments
+            name = the fully qualified name of the layer i.e. 'username:password@geoserver_url:shakemap_padang_20090930'
+            bounding box = array bounds of the downloaded map e.g [96.956,-5.519,104.641,2.289] 
+            #(default None, in which case all data is returned)
+            (default []??, in which case all data is returned)
+        
+        Returns
+            layerdata = the layer data as a numeric array (, error string if there are any errors???)
+        
+        Note: Exceptions are expected to propagate through XMLRPC 
+        """
+
+        if bounding_box == [] or bounding_box == '':
+            bounding_box = None
+        
+        username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(name)
+
+        # FIXME: Check that workspace exists!
+                
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+
+
+        raster = gs.get_raster_data(layer_name, 
+                                    bounding_box, 
+                                    workspace, 
+                                    verbose=False)
+
+        # FIXME(Ole): Do we really need 'SUCCESS'?
+        return raster
+        
+            
     
     def download_geoserver_vector_layer(self):
         """Download data to the specified geoserver
