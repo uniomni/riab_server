@@ -114,14 +114,14 @@ class Test_Riab_Server(unittest.TestCase):
         geoserver_url = 'http://localhost:8080/geoserver'
         username = 'admin'
         userpass = 'geoserver'
-        layer_name = 'tasmania_roads'
+        layer_name = '' # This is not verified
         workspace = 'topp'
         
         s = self.api.create_geoserver_layer_handle(username, userpass, geoserver_url, layer_name, 
-                                                           workspace)
+                                                   workspace)
         res = self.api.check_geoserver_layer_handle(s)
         
-        msg = 'Was not able to access Geoserver layer: %s' % s
+        msg = 'Was not able to access Geoserver with handle: %s' % s
         assert res == 'SUCCESS', msg
         
         

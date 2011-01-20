@@ -59,7 +59,7 @@ class Geoserver:
              '<workspace><name>%s</name></workspace>' % name, 
              verbose=verbose)
         
-        # Record this workspace as default
+        # Record this workspace as default FIXME - obsolete?
         self.workspace = name
         
         
@@ -67,6 +67,8 @@ class Geoserver:
         """Get workspace info from the geoserver
         """
 
+        # FIXME(Ole): Unfortunate name as it doesn't return anything
+        
         out = curl(self.geoserver_url, 
                    self.geoserver_username, 
                    self.geoserver_userpass, 
