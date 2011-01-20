@@ -573,7 +573,100 @@ class Test_API(unittest.TestCase):
             F = 10**(a*H.flat[idx]-b)*E.flat[idx] 
             #print 'Res (P)', F, I.flat[idx], F-I.flat[idx]            
             assert numpy.abs(F-I.flat[idx]) < 1.0e-12                  
-            assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-12)                                        
+            assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-12)          
+            
+            
+            
+                
+    def test_impact_model_remote_data(self):
+        """Test that impact model can be computed correctly using data from geoserver
+        """
+        
+        # Fatality model parameters
+        a = 0.97429
+        b = 11.037
+        bounding_box = [96.956, -5.519, 104.641, 2.289]        
+        
+        # Upload hazard data
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',
+                                                    test_workspace_name)
+
+        hazard_level = 'shakemap_padang_20090930'                                                    
+        self.api.upload_geoserver_layer('data/%s.asc' % hazard_level, lh)
+                    
+        for exposure_data, expected_fatality_data in [('population_padang_1', 'fatality_padang_1'),
+                                                      ('population_padang_2', 'fatality_padang_2')]:
+            
+            # Upload exposure and expected fatalities
+            self.api.upload_geoserver_layer('data/%s.asc' % exposure_data, lh)
+            self.api.upload_geoserver_layer('data/%s.asc' % expected_fatality_data, lh)
+            
+            # Download all three datasets
+            lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                        geoserver_userpass, 
+                                                        geoserver_url, 
+                                                        hazard_level,
+                                                        test_workspace_name)            
+            hazard_raster = self.api.get_raster_data(lh, bounding_box)
+            
+
+            lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                        geoserver_userpass, 
+                                                        geoserver_url, 
+                                                        exposure_data,
+                                                        test_workspace_name)                                    
+            exposure_raster = self.geoserver.get_raster_data(lh, bounding_box)            
+                                                             
+
+            lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                        geoserver_userpass, 
+                                                        geoserver_url, 
+                                                        expected_fatality_data,
+                                                        test_workspace_name)                                    
+            fatality_raster = self.geoserver.get_raster_data(lh, bounding_box)         
+            
+                                                             
+            # Calculate impact
+            E = exposure_raster.get_data()
+            H = hazard_raster.get_data()
+            I = fatality_raster.get_data()
+            
+            F = 10**(a*H-b)*E 
+            
+            
+            # Verify correctness
+            msg = 'Computed impact not as expected'
+            
+            err = I-F            
+            
+            max_dif = numpy.max(numpy.abs(err[:]))
+            #print 'max_dif', max_dif
+            assert max_dif < 1.0e-5, msg
+            
+            rel_dif = max_dif/numpy.max(numpy.abs(I[:]))
+            #print 'rel_dif', rel_dif            
+            assert rel_dif < 1.0e-5, msg
+                        
+            assert numpy.allclose(I, F, rtol=1.0e-5), msg
+            
+        
+            # Verify correctness at selected points
+            idx = numpy.argmax(H) # Highest hazard level
+            F = 10**(a*H.flat[idx]-b)*E.flat[idx] 
+            #print
+            #print 'Res (H)', F, I.flat[idx], F-I.flat[idx]
+            assert numpy.abs(F-I.flat[idx]) < 2.0e-6
+            assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-5)                                        
+            
+            idx = numpy.argmax(E) # Highest population level
+            F = 10**(a*H.flat[idx]-b)*E.flat[idx] 
+            #print 'Res (P)', F, I.flat[idx], F-I.flat[idx]            
+            assert numpy.abs(F-I.flat[idx]) < 2.0e-6                
+            assert numpy.allclose(F, I.flat[idx], rtol = 1.0e-5)
+                                          
         
 ################################################################################
 
