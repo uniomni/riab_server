@@ -4,6 +4,10 @@ Start all test servers, run the test suite and stop servers
 """
 
 import os
+
+# Run installation scripts
+os.system('cd ../installation; sudo python install_geoserver.py')
+os.system('cd ../installation; sudo python install_riab_server.py')
         
 # Make sure all local servers are running
 execfile('start_all_servers.py')
