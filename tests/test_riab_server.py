@@ -7,6 +7,8 @@ import pycurl, StringIO, json
 from config import test_workspace_name, geoserver_url, geoserver_username, geoserver_userpass
 from config import test_url
 
+from utilities import get_web_page, get_bounding_box
+
 class Test_Riab_Server(unittest.TestCase):
 
     have_reloaded = False
@@ -125,7 +127,7 @@ class Test_Riab_Server(unittest.TestCase):
         assert res == 'SUCCESS', msg
         
         
-    def XXtest_create_workspace(self):            
+    def test_create_workspace(self):            
         """Test that new workspace can be created
         """
         
@@ -155,7 +157,7 @@ class Test_Riab_Server(unittest.TestCase):
         assert found, msg
         
         
-    def XXtest_upload_coverage(self):
+    def test_upload_coverage(self):
         """Test that a coverage can be uploaded and a new style is created
         """
         
