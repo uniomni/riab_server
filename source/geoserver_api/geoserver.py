@@ -535,15 +535,26 @@ class Geoserver:
         # curl -u geoserver -XPOST -H 'Content-type: text/xml' -d 
         # '<style><name>sld_for_Pk50095_geotif_style</name><filename>Pk50095.sld</filename></style>' 
         # localhost:8080/geoserver/rest/styles/ 
-        curl(self.geoserver_url, 
-             self.geoserver_username, 
-             self.geoserver_userpass, 
-             'POST', 
-             'text/xml', 
-             'styles', 
-             '--data-ascii', 
-             '<style><name>%s</name><filename>%s</filename></style>' % (style_name, style_file),  
-             verbose=verbose)
+        try:
+            curl(self.geoserver_url, 
+                 self.geoserver_username, 
+                 self.geoserver_userpass, 
+                 'POST', 
+                 'text/xml', 
+                 'styles', 
+                 '--data-ascii', 
+                 '<style><name>%s</name><filename>%s</filename></style>' % (style_name, style_file),  
+                 verbose=verbose)
+        except Exception, e:
+            
+            if str(e).find('already exists') > 0:
+                # Style already exists, no worries
+                pass
+            else:
+                # Reraise
+                msg = 'Could not create style %s: %s' % (style_name, e)
+                raise Exception(msg)
+                
 
         # curl -u geoserver -XPUT -H 'Content-type: application/vnd.ogc.sld+xml' -d @sld_for_Pk50095_geotif.sld
         # localhost:8080/geoserver/rest/styles/sld_for_Pk50095_geotif_style
@@ -557,12 +568,7 @@ class Geoserver:
             '@%s' % style_file, 
             verbose=verbose)
 
-    def delete_style(self, style_name):
-        """docstring for delete_style"""
-        # TODO: add test
-        run("curl -u %s:%s -d 'purge=true' -XDELETE localhost:8080/geoserver/rest/styles/%s" % (self.geoserver_username, 
-            self.geoserver_userpass, 
-            style_name))
+
         
     def set_default_style(self, style_name, layer_name, verbose=False):
         """Set given style as default for specified layer"""
@@ -580,12 +586,37 @@ class Geoserver:
         # curl -u admin:geoserver -XPUT -H 'Content-type: text/xml' -d 
         # '<layer><defaultStyle><name>Pk50095_geotif_style</name></defaultStyle><enabled>true</enabled></layer>' 
         # localhost:8080/geoserver/rest/layers/Pk50095_geotif
-    
-    def delete_layer(self, layer_name):
-        """docstring for delete_layer"""
-        # FIXME (Ole): What is the point of docstrings if all they say is 'docstring for ....'???
+
         
-        # TODO: Add tests
-        run("curl -u %s:%s -XDELETE localhost:8080/geoserver/rest/layers/%s" % (self.geoserver_username, 
-            self.geoserver_userpass, 
-            layer_name))
+    def delete_style(self, style_name, verbose=False):
+        """docstring for delete_style"""
+        
+        # TODO: add test
+        run('curl -u %s:%s -d "purge=true" -X DELETE localhost:8080/geoserver/rest/styles/%s' % (self.geoserver_username, 
+                                                                                                 self.geoserver_userpass, 
+                                                                                                 style_name))            
+    def delete_layer(self, layer_name, verbose=False):
+        """Delete layer on server
+        
+        This is done through REST with commands like this:
+        curl -u admin:geoserver -v -X DELETE "http://localhost:8080/geoserver/rest/layers/%s"' % layer     
+        """
+        
+        if not layer_name:
+            msg = 'Valid layer name was not provided for deletion. I got "%s"' % str(layer_name)
+            raise Exception(msg)
+            
+        
+        curl(self.geoserver_url, 
+             self.geoserver_username, 
+             self.geoserver_userpass, 
+             'DELETE', 
+             '', 
+             'layers/%s' % layer_name, 
+             '', 
+             '',
+             verbose=True)        
+             
+             
+
+        

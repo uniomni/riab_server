@@ -791,7 +791,82 @@ class Test_API(unittest.TestCase):
         
         # FIXME (Ole): Download and test
 
+
+    def Xtest_deletion_of_layers(self):
+        """Test that layer can be deleted
+        """
+        # FIXME (Ole): This test passes first time it is run. Subsequent runs give error message
+        # Error auto-configuring coverage:Error persisting CoverageInfoImpl[shakemap_padang_20090930] to /usr/local/geoserver-2.0.2/data_dir/workspaces/futnuh/shakemap_padang_20090930/shakemap_padang_20090930/coverage.xml
+        # This was reported to OpenGeo and geoserver mailing list on 25th January 2011
         
+        # Create workspace
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)        
+        
+        # setup layer, file, sld and style names
+        layername = 'shakemap_padang_20090930'
+        raster_file = 'data/%s.asc' % layername
+        expected_output_sld_file = '%s.sld' % layername 
+        stylename = layername 
+        
+        # Form layer handle
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',   # Empty layer means derive from filename
+                                                    test_workspace_name)
+                
+        # Upload coverage
+        res = self.api.upload_geoserver_layer(raster_file, lh)
+        assert res.startswith('SUCCESS'), res        
+
+        # Check that layer is there
+        found = False
+        page = get_web_page(os.path.join(geoserver_url, 'rest/layers'), 
+                            username=geoserver_username, 
+                            password=geoserver_userpass)
+        for line in page:
+            if line.find('rest/layers/%s.html' % layername) > 0:
+                found = True
+        
+        msg = 'Did not find layer %s in geoserver %s' % (layername, geoserver_url)
+        assert found, msg        
+
+        # Form fully qualified handle for layer deletions
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    layername,
+                                                    test_workspace_name)
+        
+        # Delete layer
+        self.api.delete_layer(lh)        
+        
+        # Check that it is gone        
+        found = False
+        page = get_web_page(os.path.join(geoserver_url, 'rest/layers'), 
+                            username=geoserver_username, 
+                            password=geoserver_userpass)
+        for line in page:
+            if line.find('rest/layers/%s.html' % layername) > 0:
+                found = True
+        
+        msg = 'Layer %s was not deleted from geoserver %s' % (layername, geoserver_url)
+        assert not found, msg        
+
+        
+    def Xtest_deletion_of_all_layers(self):
+        """Test that Geoserver can be cleaned up programatically
+        """
+        
+        pass
+        
+        
+
+                
+
+        
+        
+                
         
 ################################################################################
 

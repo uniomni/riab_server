@@ -412,4 +412,23 @@ class RiabAPI():
         """
         
         return 'ERROR: NO IMPLEMENTATION'
+        
+        
+        
+    def delete_layer(self, name):
+        """Delete layer on the specified geoserver
+
+        """
+        
+        # Unpack and connect
+        username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(name)
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+        
+        # Delete layer
+        gs.delete_layer(layer_name, verbose=False)
+
+        # Delete style
+        #gs.delete_style(layer_name, verbose=False)        
+        
+        return 'SUCCESS'        
     

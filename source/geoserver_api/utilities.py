@@ -136,11 +136,12 @@ def curl(url, username, password, request, content_type, rest_dir, data_type, da
     """
 
     # Build curl command
-    # FIXME (Ole): Can use flag -S to get more error messages 
+    # FIXME (Ole): Can we use flag -S to get more error messages?
+    
+    # FIXME (Ole): Make content_type an optional keyword arg (e.g. not necessary in case of DELETE).
     
     cmd = 'curl -u %s:%s' % (username, password)
-    if verbose:
-        cmd += ' -v'
+    cmd += ' -v' # Always add verbose flag to get error messages
     
     cmd += ' -X %s' % request
     cmd += ' -H "Content-type: %s"' % content_type     
@@ -155,24 +156,21 @@ def curl(url, username, password, request, content_type, rest_dir, data_type, da
     curl_stderr = 'curl.stderr'
     run(cmd, stdout=curl_stdout, stderr=curl_stderr, verbose=verbose)
 
-    #if verbose:
-    #    os.system('cat %s' % curl_stdout)
-    #    os.system('cat %s' % curl_stderr)
-    
-    # Check for: HTTP/1.1 500 Internal Server Error
-    # FIXME (Ole): There might be other error conditions 
     out = open(curl_stdout).readlines()
     err = open(curl_stderr).read()
-    if err.find('HTTP/1.1 500 Internal Server Error') > 0:# or err.find('HTTPError'):
-        msg = 'Failed curl command (Internal Server Error):\n%s\n' % cmd
-        msg += 'Output:        %s\n' % out
-        msg += 'Error message: %s\n' % err
+
+    # FIXME (Ole): Check for other error conditions 
+    
+    if err.find('HTTP/1.1 500') > 0:
+        msg = 'Curl command failed (Internal Server Error): %s, %s' % (cmd, out)        
         raise Exception(msg)
         
+    if err.find('HTTP/1.1 404') > 0:
+        msg = 'Curl command failed (Not Exist): %s, %s' % (cmd, out)            
+        raise Exception(msg)                
+        
     if err.find('HTTP/1.1 405') > 0:
-        msg = 'Failed curl command (Method Not Allowed):\n%s\n' % cmd
-        msg += 'Output:        %s\n' % out
-        msg += 'Error message: %s\n' % err
+        msg = 'Curl command failed (Method Not Allowed): %s, %s' % (cmd, out)                
         raise Exception(msg)        
 
     return out
