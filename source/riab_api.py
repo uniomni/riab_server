@@ -174,7 +174,8 @@ class RiabAPI():
             return False
         else:
             return True
-        
+
+
     
     def calculate(self, hazards, exposures, impact_function_id, impact, bounding_box, comment):
         """Calculate the Impact Geo as a function of Hazards and Exposures
