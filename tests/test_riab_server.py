@@ -272,43 +272,10 @@ class Test_Riab_Server(unittest.TestCase):
             # Calculate impact using API: using default impact function for the moment
             self.api.calculate(haz_handle, exp_handle, 0, imp_handle, bounding_box, '')
             filename = 'download.tif'
-            try:
-                os.unlink(filename)
-            except:
-                pass 
-            calculated_raster_layer = self.api.download_geoserver_raster_layer(imp_handle, bounding_box, filename)
-            open(filename)
+            self.api.download_geoserver_raster_layer(imp_handle, bounding_box, filename)
 
             # FIXME: Check with gdalinfo that file contents are correct
             # Also compare contents with reference file
-            return
-
-            # Download calculated layer 
-            #XXcalculated_raster = self.api.get_raster_data(imp_handle, bounding_box)         
-                        # Extract calculated and reference data
-            C = calculated_raster.get_data()            
-            R = reference_raster.get_data()
-            
-            R = R[:-1,:-1] # FIXME(Ole): Hack - GeoServer does not preserve this
-
-            assert numpy.allclose(C.shape, R.shape)
-                        
-            # Verify correctness
-            msg = 'Computed impact not as expected'
-            
-            err = C-R
-
-            
-            # FIXME(Ole): Look at these tolerances once bounding box and precision issues with GDAL and Geoserver have been resolved.
-            max_dif = numpy.max(numpy.abs(err[:]))
-            #print 'max_dif', max_dif
-            assert max_dif < 1.0e-2, msg
-            
-            rel_dif = max_dif/numpy.max(numpy.abs(R[:]))
-            #print 'rel_dif', rel_dif            
-            assert rel_dif < 1.0e-2, msg
-                        
-            assert numpy.allclose(C, R, rtol=1.0e-6, atol=1.0e-2), msg
             
 
 ################################################################################

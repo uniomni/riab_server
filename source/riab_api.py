@@ -341,10 +341,10 @@ class RiabAPI():
             (default []??, in which case all data is returned)
           
             filename: Name of file where layer is stored # FIXME(Ole): Actually no need as default is there
+                      If filename already exists on the disk it will be overwritten.
         
         Returns
-            FIXME(Ole): What is meant by this return value ?
-            layerdata = the layer data as a tif, error string if there are any errors
+            'SUCCESS' if completed.
         
         Note: Exceptions are expected to propagate through XMLRPC 
         """
@@ -359,6 +359,12 @@ class RiabAPI():
         # Check that workspace exists
         gs.get_workspace(workspace)
         
+        # Clear existing file
+        try:
+            os.remove(filename)
+        except:
+            pass 
+        
         # Download
         gs.download_coverage(layer_name, 
                              bounding_box, 
@@ -366,6 +372,11 @@ class RiabAPI():
                              workspace=workspace, 
                              format='GeoTIFF',
                              verbose=False)
+        
+        # Check existence of downloaded file
+        if not os.path.exists(filename):
+            msg = 'Expected file %s was not sucessfully downloaded from %s' % (filename, geoserver_url)
+            raise Exception(msg)
         
         return 'SUCCESS'
 

@@ -49,15 +49,26 @@ class Geoserver:
          "<workspace><name>aifdr</name></workspace>"
         """
 
-        curl(self.geoserver_url, 
-             self.geoserver_username, 
-             self.geoserver_userpass, 
-             'POST', 
-             'text/xml', 
-             'workspaces', 
-             '--data-ascii', 
-             '<workspace><name>%s</name></workspace>' % name, 
-             verbose=verbose)
+        try:
+            curl(self.geoserver_url, 
+                 self.geoserver_username, 
+                 self.geoserver_userpass, 
+                 'POST', 
+                 'text/xml', 
+                 'workspaces', 
+                 '--data-ascii', 
+                 '<workspace><name>%s</name></workspace>' % name, 
+                 verbose=verbose)
+        except Exception, e:
+            
+            if str(e).find('already exists') > 0:
+                # Workspace already exists, no worries
+                pass
+            else:
+                # Reraise
+                msg = 'Could not create workspace %s: %s' % (name, e)
+                raise Exception(msg)
+             
         
         # Record this workspace as default FIXME - obsolete?
         self.workspace = name
