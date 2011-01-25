@@ -28,7 +28,6 @@ class Test_API(unittest.TestCase):
             
     def tearDown(self):
         pass
-
         
     def test_create_geoserver_handles_1(self):
         """Test that handles without workspace are created correctly
@@ -381,7 +380,7 @@ class Test_API(unittest.TestCase):
         
          
     # FIXME(Ole): This test still fails. Talk to OpenGeo!        
-    def Xtest_bounding_box_of_downloaded_coverage(self):
+    def test_bounding_box_of_downloaded_coverage(self):
         """Test that bounding box for downloaded coverage is correct
         """
     

@@ -131,8 +131,7 @@ class RiabAPI():
             workspace=name of new geoserver workspace
             
         Returns
-            'SUCCESS' if complete
-            'ERROR: CANNOT CREATE WORKSPACE %s ON GEOSERVER %s - ERROR MESSAGE IS %s' 
+            'SUCCESS' if complete, otherwise Exception is raised.
 
         """
         # FIXME(Ole): This does not work with the general layer handle. Perhaps reconsider general handle syntax.
@@ -194,12 +193,8 @@ class RiabAPI():
             comment = String with comment for output metadata
         
         Returns
-            string: 'SUCCESS' if complete
-                    'ERROR: PROCESSING %s' : An error has occurred during processing
-                    'ERROR: INVALID IMPACT FUNCTION %s' : impact function does not support the hazard and/or exposure type
-                    'ERROR: GEOSERVER %s': Failed to connect to the geoserver
-                    'WARNING: PROJECTION UNKNOWN %s': A layer does not have projection information
-                     error-string if fail
+            string: 'SUCCESS' if complete, otherwise Exception is raised
+
                      
         Note
             hazards and exposure may be lists of handles or just a single handle each.             
@@ -313,7 +308,7 @@ class RiabAPI():
             name = the fully qualified geoserver layer name
         
         Returns
-            'SUCCESS' or 'ERROR: ....'
+            'SUCCESS' if complete, otherwise Exception is raised
         
         """
 
@@ -386,7 +381,7 @@ class RiabAPI():
             (default []??, in which case all data is returned)
         
         Returns
-            layerdata = the layer data as a numeric array (, error string if there are any errors???)
+            layerdata = the layer data as a numeric array
         
         Note: Exceptions are expected to propagate through XMLRPC 
         """
@@ -407,7 +402,6 @@ class RiabAPI():
                                     workspace, 
                                     verbose=False)
 
-        # FIXME(Ole): Do we really need to return 'SUCCESS'?
         return raster
         
             
@@ -417,5 +411,6 @@ class RiabAPI():
         
         Note - can this be wrapped up with the raster version? 
         """
+        
         return 'ERROR: NO IMPLEMENTATION'
     

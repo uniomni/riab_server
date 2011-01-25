@@ -87,9 +87,14 @@ class Coverage:
     
     self.format = format
     self.bbox=bounding_box
-      
+
+          
     c = pycurl.Curl()
     f = open(outputfile, 'w+')
     c.setopt(pycurl.URL, self.get_url())
     c.setopt(pycurl.WRITEFUNCTION, f.write)
+    
+    #print pycurl.URL, self.get_url()
+    #print pycurl.WRITEFUNCTION
+    
     c.perform()

@@ -88,7 +88,7 @@ if __name__ == '__main__':
         if os.path.isdir(subdir):
 
             # Create new workspace
-            geoserver.create_workspace(workspace)
+            geoserver.create_workspace(workspace, verbose=True)
 
             for filename in os.listdir(subdir):
 
