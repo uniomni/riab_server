@@ -1,4 +1,4 @@
-"""This is a Python interface to the Geoserver API
+"""This is a Python interface to the Geoserver REST API
 """
 
 import os
@@ -454,41 +454,6 @@ class Geoserver:
             # TODO : add the case where no workspace is given
             return None
             
-    # Ideas
-    # this is massivly screwed - need to go back and rethink
-    # def delete_coverage(self, name, remove_style=True):
-    #     # assuming layer name is given with workspace e.g. test:shakemap
-    #     workspace, layername = name.split(':')
-    #     
-    #     # Delete workspaces that come with default installation
-    #     # FIXME (Ole): Shoaib - can you help here?
-    #     # (Shoaib): first delete the layer, then the coverage, then the coveragestore
-    # 
-    #     # FIXME (Ole): These should be enacted and tested - possibly using the curl function from utilities.
-    #     
-    #     # 1. delete layer
-    #     base_cmd =  "curl -u %s:%s" % (self.geoserver_username, self.geoserver_userpass)
-    #     cmd1 = base_cmd+" -XDELETE %s/rest/layers/%s" % (self.geoserver_url, layername)
-    #     
-    #     # 2. delete coverage
-    #     cmd2 = base_cmd + ' %s/rest/workspaces/%s/coveragestores/%s/coverages/%s' \
-    #     % (self.geoserver_url, workspace, layername, layername)
-    # 
-    #     # 3. delete coveragestore
-    #     cmd3 = base_cmd+' %s/rest/workspaces/%s/coveragestores/%s' \
-    #     % (self.geoserver_url, workspace, layername)
-    #     # print
-    #     # print cmd1
-    #     # print cmd2
-    #     # print cmd3
-    # 
-    #     run(cmd1, verbose=False)
-    #     run(cmd2, verbose=False)
-    #     run(cmd3, verbose=False)
-    
-    
-        #cmd = 'curl -v -X DEL -H "Content-type: text/xml" "http://admin:geoserver@localhost:8080/geoserver/rest/workspaces" -d "<workspace><name>topp</name></workspace>"'
-        #run(cmd)        
 
     def create_raster_sld(self, filename, quantiles=False, verbose=False):
         """given a raster file and a predefined SLD template it should find the min,max,nodata values
@@ -606,11 +571,18 @@ class Geoserver:
         run('curl -u %s:%s -d "purge=true" -X DELETE localhost:8080/geoserver/rest/styles/%s' % (self.geoserver_username, 
                                                                                                  self.geoserver_userpass, 
                                                                                                  style_name))            
-    def delete_layer(self, layer_name, verbose=False):
+    def delete_layer(self, layer_name, workspace, verbose=False):
         """Delete layer on server
         
-        This is done through REST with commands like this:
-        curl -u admin:geoserver -v -X DELETE "http://localhost:8080/geoserver/rest/layers/%s"' % layer     
+        This is done through REST in three steps with commands like this:
+        
+        curl -u admin:geoserver -v -X DELETE "http://localhost:8080/geoserver/rest/layers/shakemap_padang_20090930"
+        curl -u admin:geoserver -v -X DELETE "http://localhost:8080/geoserver/rest/workspaces/hazard/coveragestores/shakemap_padang_20090930/coverages/shakemap_padang_20090930"
+        curl -u admin:geoserver -v -X DELETE "http://localhost:8080/geoserver/rest/workspaces/hazard/coveragestores/shakemap_padang_20090930"
+        
+        
+        In newer versions of GeoServer it can done like this:
+        curl -u admin:geoserver -v -X DELETE "http://localhost:8080/geoserver/rest/workspaces/hazard/coveragestores/shakemap_padang_20090930?recurse=true"        
         """
         
         if not layer_name:
@@ -618,6 +590,7 @@ class Geoserver:
             raise Exception(msg)
             
         
+        # Delete layer
         curl(self.geoserver_url, 
              self.geoserver_username, 
              self.geoserver_userpass, 
@@ -626,7 +599,30 @@ class Geoserver:
              'layers/%s' % layer_name, 
              '', 
              '',
-             verbose=True)        
+             verbose=verbose)        
+             
+             
+        # Delete associated coverages
+        curl(self.geoserver_url, 
+             self.geoserver_username, 
+             self.geoserver_userpass, 
+             'DELETE', 
+             '', 
+             'workspaces/%s/coveragestores/%s/coverages/%s' % (workspace, layer_name, layer_name),
+             '', 
+             '',
+             verbose=verbose)                     
+             
+        # Delete associated coverage store
+        curl(self.geoserver_url, 
+             self.geoserver_username, 
+             self.geoserver_userpass, 
+             'DELETE', 
+             '', 
+             'workspaces/%s/coveragestores/%s' % (workspace, layer_name),
+             '', 
+             '',
+             verbose=verbose)                                  
              
              
 

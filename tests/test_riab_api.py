@@ -859,12 +859,9 @@ class Test_API(unittest.TestCase):
         # FIXME (Ole): Download and test
 
 
-    def Xtest_deletion_of_layers(self):
+    def test_deletion_of_layers(self):
         """Test that layer can be deleted
         """
-        # FIXME (Ole): This test passes first time it is run. Subsequent runs give error message
-        # Error auto-configuring coverage:Error persisting CoverageInfoImpl[shakemap_padang_20090930] to /usr/local/geoserver-2.0.2/data_dir/workspaces/futnuh/shakemap_padang_20090930/shakemap_padang_20090930/coverage.xml
-        # This was reported to OpenGeo and geoserver mailing list on 25th January 2011
         
         # Create workspace
         self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)        

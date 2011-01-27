@@ -437,7 +437,7 @@ class RiabAPI():
         gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
         
         # Delete layer
-        gs.delete_layer(layer_name, verbose=False)
+        gs.delete_layer(layer_name, workspace, verbose=False)
 
         # Delete style
         #gs.delete_style(layer_name, verbose=False)        
