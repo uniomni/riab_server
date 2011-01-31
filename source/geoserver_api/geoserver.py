@@ -328,7 +328,7 @@ class Geoserver:
             pass
         
         
-        # Upload vectore data to Geoserver        
+        # Upload vector data to Geoserver        
         curl(self.geoserver_url, 
              self.geoserver_username, 
              self.geoserver_userpass, 
@@ -550,14 +550,14 @@ class Geoserver:
         """Set given style as default for specified layer"""
         
         curl(self.geoserver_url, 
-            self.geoserver_username, 
-            self.geoserver_userpass, 
-            'PUT', 
-            'text/xml', 
-            'layers/%s' % (layer_name), 
-            '--data-ascii', 
-            '<layer><defaultStyle><name>%s</name></defaultStyle><enabled>true</enabled></layer>' % style_name,
-            verbose=verbose)
+             self.geoserver_username, 
+             self.geoserver_userpass, 
+             'PUT', 
+             'text/xml', 
+             'layers/%s' % (layer_name), 
+             '--data-ascii', 
+             '<layer><defaultStyle><name>%s</name></defaultStyle><enabled>true</enabled></layer>' % style_name,
+             verbose=verbose)
         
         # curl -u admin:geoserver -XPUT -H 'Content-type: text/xml' -d 
         # '<layer><defaultStyle><name>Pk50095_geotif_style</name></defaultStyle><enabled>true</enabled></layer>' 
@@ -627,3 +627,9 @@ class Geoserver:
              
 
         
+    def delete_all_layers(self, verbose=False):
+        """Delete all layers on server
+        """
+        
+        # Get layers and associated workspaces
+        pass

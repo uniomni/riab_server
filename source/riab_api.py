@@ -429,7 +429,6 @@ class RiabAPI():
         
     def delete_layer(self, name):
         """Delete layer on the specified geoserver
-
         """
         
         # Unpack and connect
@@ -442,5 +441,18 @@ class RiabAPI():
         # Delete style
         #gs.delete_style(layer_name, verbose=False)        
         
+        return 'SUCCESS'        
+    
+
+    def delete_all_layers(self, username, userpass, geoserver_url):
+        """Delete all layers on the specified geoserver
+        """
+        
+        # Connect
+        gs = geoserver.Geoserver(geoserver_url, username, userpass)                                  
+        
+        # Delete layer
+        gs.delete_all_layers(verbose=False)
+
         return 'SUCCESS'        
     
