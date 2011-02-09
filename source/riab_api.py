@@ -235,11 +235,13 @@ class RiabAPI():
         # Upload result (FIXME(Ole): still super hacky and not at all general)
         username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(impact)
         
+        # FIXME(Ole): Get everything from gdalinfo
         output_file = 'data/%s.asc' % layer_name
         write_coverage_to_ascii(F, output_file, 
                                 xllcorner = bounding_box[0],
                                 yllcorner = bounding_box[1],
                                 cellsize=0.030741064,
+                                #cellsize=0.008333333333000,                                
                                 nodata_value=-9999,
                                 # FIXME(Ole): Need to get projection for haz and exp from GeoServer. For now use example.
                                 projection=open('data/test_grid.prj').read()) 
