@@ -1,5 +1,10 @@
 """Low level interface to download of coverage (raster) from Geoserver
+
+Shoaib Burq 2010
 """
+
+# FIXME (Ole): This needs some rethinking and testing.
+
 
 import pycurl
 import numpy
