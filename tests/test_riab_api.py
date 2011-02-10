@@ -19,7 +19,7 @@ sys.path.append(source_path)
 from riab_api import *
 
 # Low level functions for some of the testing
-from geoserver_api.raster import read_coverage, write_coverage_to_ascii, read_coverage_asc
+from geoserver_api.raster import read_coverage, write_coverage_to_geotiff, read_coverage_asc
 
 class Test_API(unittest.TestCase):
 
@@ -500,14 +500,12 @@ class Test_API(unittest.TestCase):
             except:
                 i = 0
                 
-            layername = 'stored_raster_%i' % i    
-            output_file = 'data/%s.asc' % layername
-            write_coverage_to_ascii(raster.get_data(), output_file, 
-                                    xllcorner = bounding_box[0],
-                                    yllcorner = bounding_box[1],
-                                    cellsize=0.030741064,
-                                    nodata_value=-9999,
-                                    projection=open('data/%s.prj' % coverage_name).read())
+            layername = 'Stored_raster_%i' % i    
+            output_file = 'data/%s.tif' % layername
+            write_coverage_to_geotiff(raster.get_data(), output_file, 
+                                      projection=reference_raster.get_projection(),
+                                      geotransform=reference_raster.get_geotransform())
+                                      
                                                 
             # And upload it again
             lh = self.api.create_geoserver_layer_handle(geoserver_username, 
@@ -738,9 +736,10 @@ class Test_API(unittest.TestCase):
             C = calculated_raster.get_data()            
             R = reference_raster.get_data()
             
-            R = R[:-1,:-1] # FIXME(Ole): Hack - GeoServer does not preserve this
+            R = R[:-1,:] # FIXME(Ole): Hack - GeoServer does not preserve this
 
-            assert numpy.allclose(C.shape, R.shape)
+            msg = 'Shape of calculated raster differs from reference raster: C=%s, R=%s' % (C.shape, R.shape)
+            assert numpy.allclose(C.shape, R.shape), msg            
                         
             # Verify correctness
             msg = 'Computed impact not as expected'

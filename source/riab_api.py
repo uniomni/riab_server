@@ -6,7 +6,7 @@
 
 import os, string
 from geoserver_api import geoserver
-from geoserver_api.raster import write_coverage_to_ascii
+from geoserver_api.raster import write_coverage_to_geotiff
 
 class RiabAPI():
     API_VERSION='0.1a'
@@ -207,19 +207,42 @@ class RiabAPI():
         if type(exposures) != type([]):
             exposures = [exposures]            
         
-        # Download data - FIXME(Ole): Currently only raster
+        # Download data - FIXME(Ole): Currently only raster. FIXME (Ole): Not even sure they should be lists
         
+        projection = None
+        geotransform = None
         hazard_layers = []
         for hazard in hazards:
             raster = self.get_raster_data(hazard, bounding_box)
             H = raster.get_data()
             hazard_layers.append(H)
-
+            
+            # FIXME (Ole): These two could be combined into one thing.
+            if projection is None:
+                projection = raster.get_projection()
+            else:
+                msg = 'Projections in hazard levels are different: %s %s' % (projection, raster.get_projection())
+                assert projection == raster.get_projection(), msg
+                
+            if geotransform is None:
+                geotransform = raster.get_geotransform()                
+            else:
+                msg = 'Geotransforms in hazard levels are different: %s %s' % (geotransform, raster.get_geotransform())            
+                geotransform == raster.get_geotransform(), msg                
+                
+                
         exposure_layers = []
         for exposure in exposures:
             raster = self.get_raster_data(exposure, bounding_box)
             E = raster.get_data()
             exposure_layers.append(E)
+            
+            msg = 'Projections in exposure levels are different: %s %s' % (projection, raster.get_projection())
+            assert projection == raster.get_projection(), msg
+                
+            msg = 'Geotransforms in exposure levels are different: %s %s' % (geotransform, raster.get_geotransform())            
+            geotransform == raster.get_geotransform(), msg
+            
                         
         # Pass hazard and exposure arrays on to plugin    
         # FIXME, for the time being we just calculate the fatality function assuming only one of each layer.
@@ -228,23 +251,30 @@ class RiabAPI():
         E = exposure_layers[0]
 
         # Calculate impact
+        # FIXME (Ole): This is where an impact plugin should be called
         a = 0.97429
         b = 11.037
         F = 10**(a*H-b)*E    
         
-        # Upload result (FIXME(Ole): still super hacky and not at all general)
+        # Upload result
         username, userpass, geoserver_url, layer_name, workspace = self.split_geoserver_layer_handle(impact)
         
+        output_file = 'data/%s.tif' % layer_name
+        write_coverage_to_geotiff(F, output_file, 
+                                  projection=projection,
+                                  geotransform=geotransform)
+        
+        #(FIXME(Ole): still super hacky and not at all general)        
         # FIXME(Ole): Get everything from gdalinfo
-        output_file = 'data/%s.asc' % layer_name
-        write_coverage_to_ascii(F, output_file, 
-                                xllcorner = bounding_box[0],
-                                yllcorner = bounding_box[1],
-                                cellsize=0.030741064,
-                                #cellsize=0.008333333333000,                                
-                                nodata_value=-9999,
-                                # FIXME(Ole): Need to get projection for haz and exp from GeoServer. For now use example.
-                                projection=open('data/test_grid.prj').read()) 
+        #output_file = 'data/%s.asc' % layer_name
+        #write_coverage_to_ascii(F, output_file, 
+        #                        xllcorner = bounding_box[0],
+        #                        yllcorner = bounding_box[1],
+        #                        cellsize=0.030741064,
+        #                        #cellsize=0.008333333333000,                                
+        #                        nodata_value=-9999,
+        #                        # FIXME(Ole): Need to get projection for haz and exp from GeoServer. For now use example.
+        #                        projection=open('data/test_grid.prj').read()) 
                                                 
         # And upload it again
         lh = self.create_geoserver_layer_handle(username, 

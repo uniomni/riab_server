@@ -9,61 +9,115 @@ source_path = os.path.join(parent_dir, 'source')
 sys.path.append(source_path)
 
 # Import everything from the API
-from geoserver_api.raster import read_coverage, write_coverage_to_ascii, read_coverage_asc, Raster
-#from geoserver_api.raster import *
+from geoserver_api.raster import read_coverage, write_coverage_to_geotiff, read_coverage_asc, Raster
 
 
 class Test_raster(unittest.TestCase):
 
 
     def setUp(self):
-        """Connect to test geoserver with new instance
-        """
-        
         pass
 
     
     def tearDown(self):
-        """Destroy test geoserver again next test
-        """
-        
         pass
-        #execfile('stop_geoserver.py')    
 
 
-    def test_read_raster(self):
-        """Test that raster can be read from file and accessed.
+    def test_read_and_write_of_rasters(self):        
+        """Test that rasters can be read and written correctly
+        """    
+        
+        for coveragename in ['Earthquake_Ground_Shaking_clip.tif',
+                             'Population_2010_clip.tif',
+                             'shakemap_padang_20090930.asc',
+                             'population_padang_1.asc']:
+        
+            filename = 'data/%s' % coveragename
+            for R1 in [Raster(filename), read_coverage(filename)]:
+                
+                # Check consistency of raster
+                A1 = R1.get_data()
+                M, N = A1.shape
+                
+                msg = 'Dimensions of raster array do not match those of raster file %s' % R1.filename
+                assert M == R1.rows, msg
+                assert N == R1.columns, msg        
+
+                # Write back to new file
+                outfilename = '/tmp/%s' % coveragename
+                try:
+                    os.remove(outfilename)
+                except:    
+                    pass
+                
+                write_coverage_to_geotiff(A1, outfilename, R1.get_projection(), R1.get_geotransform())
+                
+                # Read again and check consistency
+                R2 = Raster(outfilename)                
+                
+                msg = 'Dimensions of written raster array do not match those of input raster file\n'
+                msg += '    Dimensions of input file %s:  (%s, %s)\n' % (R1.filename, R1.rows, R1.columns)
+                msg += '    Dimensions of output file %s: (%s, %s)' % (R2.filename, R2.rows, R2.columns)                
+                assert R1.rows == R2.rows, msg
+                assert R1.columns == R2.columns, msg                        
+        
+                A2 = R2.get_data()     
+                
+                assert numpy.allclose(numpy.min(A1), numpy.min(A2))
+                assert numpy.allclose(numpy.max(A1), numpy.max(A2))                
+
+                msg = 'Array values of written raster array were not as expected'
+                assert numpy.allclose(A1, A2), msg           
+                
+                # NOTE: This does not always hold as projection text might differ slightly. E.g.
+                #assert R1.get_projection() == R2.get_projection(), msg  
+                #E.g. These two refer to the same projection
+                #GEOGCS["GCS_WGS_1984",DATUM["WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
+                #GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.2572235630016,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],AUTHORITY["EPSG","4326"]]
+                
+                msg = 'Geotransforms were different'
+                assert R1.get_geotransform() == R2.get_geotransform(), msg                  
+
+
+        
+    def test_raster_extrema(self):
+        """Test that raster extrema are correct.
         """
 
         # FIXME (Ole): Some datasets show very large differences between extrema in the array and 
         # those computed by GDAL. This may warrant another bug report to GEOS
         
-        for coverage_name in ['test_grid', 
-                              'shakemap_padang_20090930',
-                              'population_padang_1',
-                              'population_padang_2',
-                              #'fatality_padang_1',
-                              #'fatality_padang_2'
-                              ]:
-    
+                              
+        for coveragename in ['Earthquake_Ground_Shaking_clip.tif',
+                             'Population_2010_clip.tif',
+                             'shakemap_padang_20090930.asc',
+                             'population_padang_1.asc',
+                             'population_padang_2.asc']:
+        
             
-            filename = 'data/%s.asc' % coverage_name
-            
+            filename = 'data/%s' % coveragename
             for R in [Raster(filename), read_coverage(filename)]:
-                        
-                min, max = R.get_extrema()
                 
-                A = R.get_data(nan=True)
+                # Check consistency of raster
+                minimum, maximum = R.get_extrema()
+                
+                # Check that arrays with NODATA value replaced by NaN's agree
+                A = R.get_data(nan=False)
                 B = R.get_data(nan=True)
+                
+                assert A.dtype == B.dtype
+                assert numpy.nanmax(A-B) == 0                
+                assert numpy.nanmax(B-A) == 0                                
+                assert numpy.nanmax(numpy.abs(A-B)) == 0
 
-                assert numpy.nanmax(A - B) == 0
+                # Check that GDAL's reported extrema match real extrema
+                # FIXME (Ole): The discrepancies are not acceptable. Report to GEOS.                
+                assert numpy.allclose(maximum, numpy.max(A[:]), rtol=1.0e-1) # FIXME: Very very high rtol                         
+                assert numpy.allclose(maximum, numpy.nanmax(B[:]), rtol=1.0e-1) # FIXME: Very very high rtol         
 
-            
-                # FIXME (Ole): These tolerances are not really acceptable. Report to GEOS.
-                assert numpy.allclose(min, numpy.nanmin(A[:]), rtol=1e-2)
-            
-                if coverage_name != 'population_padang_2':
-                    assert numpy.allclose(max, numpy.nanmax(A[:]), rtol=1e-2)
+                assert numpy.allclose(minimum, numpy.min(A[:]), rtol=1e-2) # FIXME: Not good either           
+                #assert numpy.allclose(minimum, numpy.nanmin(B[:]), rtol=1e-2) # This shows that the minimum is -9999. Is that perhaps OK? 
+
             
         
     def test_bins(self):
@@ -155,7 +209,8 @@ class Test_raster(unittest.TestCase):
         
         
             
-                        
+    #FIXME: Need test of read and write: data, metadata, M and N!!
+                                    
 ################################################################################
 
 if __name__ == '__main__':

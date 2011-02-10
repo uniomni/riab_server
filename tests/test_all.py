@@ -16,7 +16,7 @@ import time
 
 # List files that should be excluded from the testing process.
 # E.g. if they are known to fail and under development
-exclude_files = []
+exclude_files = ['test_riab_server.py']
 
 # Directories that should not be searched for test files.
 exclude_dirs = ['.svn',          # subversion

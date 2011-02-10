@@ -25,25 +25,30 @@ class Raster:
             msg = 'Could not open file %s' % filename            
             raise Exception(msg)            
 
-        # Get first band. Assume that file contains all data in one band
-        # FIXME (Ole): Need to assert this assumption
-        band = self.band = fid.GetRasterBand(1)
-        if band is None:
-            msg = 'Could not read raster band from %s' % filename    
-            raise Exception(msg)
-
         # Record raster metadata from file
-        self.geotransform = fid.GetGeoTransform()
-        self.projection = fid.GetProjection()
-                
         basename, ext = os.path.splitext(filename)
         coveragename = os.path.split(basename)[-1] # Aways use basename without leading directories as name
     
         self.filename = filename
         self.name = coveragename
 
+        self.columns = fid.RasterXSize
+        self.rows = fid.RasterYSize
+        self.number_of_bands = fid.RasterCount
+
+        
+        # Assume that file contains all data in one band        
+        msg = 'Only one raster band currently allowed'
+        assert self.number_of_bands == 1, msg 
+        
+        # Get first band. 
+        band = self.band = fid.GetRasterBand(1)
+        if band is None:
+            msg = 'Could not read raster band from %s' % filename    
+            raise Exception(msg)
 
 
+        
     def get_data(self, nan=False):
         """Get raster data as numeric array
         If keyword nan is True, nodata values will be replaced with NaN
@@ -51,17 +56,26 @@ class Raster:
         
         A = self.band.ReadAsArray()
             
+        M, N = A.shape
+        msg = 'Dimensions of raster array do not match those of raster file %s' % self.filename
+        assert M == self.rows, msg
+        assert N == self.columns, msg        
+        
         if nan:
             # Replace NODATA_VALUE with NaN            
             nodata = self.get_nodata_value()        
             
-            NaN = numpy.zeros(A.shape)*numpy.nan
+            NaN = numpy.zeros(A.shape, A.dtype)*numpy.nan
             A = numpy.where(A == nodata, NaN, A)
          
         return A
             
         
+    def get_projection(self):
+        return self.fid.GetProjection()
         
+    def get_geotransform(self):
+        return self.fid.GetGeoTransform()
 
     def __mul__(self, other):
         return self.data * other.data
@@ -213,12 +227,30 @@ def read_coverage(filename, verbose=False):
     return Raster(filename)
                   
 
-#def write_coverage_to_geotiff(A, filename, xllcorner, yllcorner,                  
-
+def write_coverage_to_geotiff(A, filename, projection, geotransform):
+    """Convert coverage into geotiff file with specified metadata and one data layer
+    """
+    
+    format = 'GTiff'
+    driver = gdal.GetDriverByName(format)
+    
+    N, M = A.shape # Dimensions. Note numpy and Gdal swap order
+    
+    # Create empty file
+    fid = driver.Create(filename, M, N, 1, gdal.GDT_Float64)
+    
+    # Write metada
+    fid.SetProjection(projection)
+    fid.SetGeoTransform(geotransform)
+    
+    # Write data
+    fid.GetRasterBand(1).WriteArray(A)
+    
     
 # FIXME (Ole) Hack to get demo going    
 # Use default projection file.
-def write_coverage_to_ascii(A, filename, xllcorner, yllcorner,
+# DELETE THIS VERY SOON!
+def XXwrite_coverage_to_ascii(A, filename, xllcorner, yllcorner,
                             cellsize=0.0083333333333333,
                             nodata_value=-9999,
                             projection='GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]'):
