@@ -457,10 +457,10 @@ class Test_API(unittest.TestCase):
             reference_raster = read_coverage(upload_filename)
             ref_shape = (reference_raster.rows, reference_raster.columns)                                             
             ref_data = reference_raster.get_data(nan=False)            
-            bounding_box = get_bounding_box(upload_filename)
+            ref_bounding_box = get_bounding_box(upload_filename)
     
             # Download using the API and test that the data is the same.
-            raster = self.api.get_raster_data(lh, bounding_box)
+            raster = self.api.get_raster_data(lh, ref_bounding_box)
 
             # Check that dimensions of downloaded data are as expected
             data = raster.get_data(nan=False)            
@@ -474,8 +474,22 @@ class Test_API(unittest.TestCase):
             # Check that geotransform is OK
             # FIXME (Ole): An atol as high as 1.0e-2 is not acceptable
             assert numpy.allclose(raster.get_geotransform(), reference_raster.get_geotransform(), rtol=1.0e-6, atol=1.0e-2)
-                                                                                                              
-                                                                                                  
+                   
+            # Check that bounding box is OK
+            # Download using the API and test that the data is the same.
+            tmpfilename = '/tmp/%s.tif' % coverage_name
+            try:
+                os.remove(tmpfilename)
+            except:
+                pass
+            res = self.api.download_geoserver_raster_layer(lh, ref_bounding_box, tmpfilename)
+            assert res.startswith('SUCCESS'), res                           
+                    
+            bounding_box = get_bounding_box(tmpfilename)            
+            
+            # FIXME: Same problem here
+            msg = 'Bounding box has changed through GeoServer: Original was %s but after download it is %s' % (str(ref_bounding_box), str(bounding_box))
+            assert numpy.allclose(bounding_box, ref_bounding_box, rtol=1.0e-6, atol=1.0e-2), msg
                                                                                                   
     def test_get_raster_data_asc(self):
         """Test that raster data can be retrieved from server and read into Python Raster object.
