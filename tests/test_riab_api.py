@@ -502,7 +502,7 @@ class Test_API(unittest.TestCase):
                 
             layername = 'stored_raster_%i' % i    
             output_file = 'data/%s.asc' % layername
-            write_coverage_to_ascii(raster.data, output_file, 
+            write_coverage_to_ascii(raster.get_data(), output_file, 
                                     xllcorner = bounding_box[0],
                                     yllcorner = bounding_box[1],
                                     cellsize=0.030741064,

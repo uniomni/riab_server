@@ -1,7 +1,7 @@
 """Test suite for Risk-in-a-Box use cases
 """
 
-import os, sys, unittest
+import os, sys, unittest, numpy
 
 # Add location of source code to search path so that API can be imported
 parent_dir = os.path.split(os.getcwd())[0]
@@ -98,10 +98,11 @@ class Test_Usecases(unittest.TestCase):
             reference_raster = self.api.get_raster_data(ref_handle, bounding_box)
             R = reference_raster.get_data()            
             
-            # FIXME (Ole): Why do the layers have different shapes? 
             print C.shape
             print R.shape
             
+            msg = 'Shape of calculated raster differs from reference raster: C=%s, R=%s' % (C.shape, R.shape)
+            assert numpy.allclose(C.shape, R.shape), msg
 
 
             

@@ -17,29 +17,31 @@ class Raster:
     """
     
     def __init__(self, filename):
-    
-        fid = gdal.Open(filename, gdal.GA_ReadOnly)
+
+        # Open data file for reading
+        # File must be kept open, otherwise GDAL methods segfault.
+        fid = self.fid = gdal.Open(filename, gdal.GA_ReadOnly)
         if fid is None:
             msg = 'Could not open file %s' % filename            
             raise Exception(msg)            
-            
-        band = fid.GetRasterBand(1)
+
+        # Get first band. Assume that file contains all data in one band
+        # FIXME (Ole): Need to assert this assumption
+        band = self.band = fid.GetRasterBand(1)
         if band is None:
             msg = 'Could not read raster band from %s' % filename    
             raise Exception(msg)
-                
 
+        # Record raster metadata from file
+        self.geotransform = fid.GetGeoTransform()
+        self.projection = fid.GetProjection()
+                
         basename, ext = os.path.splitext(filename)
         coveragename = os.path.split(basename)[-1] # Aways use basename without leading directories as name
-                            
     
-        self.fid = fid # Keep open - otherwise methods in gdal segfaults!
         self.filename = filename
         self.name = coveragename
-        self.band = band
 
-        # Backwards compatibility - remove
-        self.data = self.get_data(nan=True)
 
 
     def get_data(self, nan=False):
@@ -210,7 +212,9 @@ def read_coverage(filename, verbose=False):
 
     return Raster(filename)
                   
-    
+
+#def write_coverage_to_geotiff(A, filename, xllcorner, yllcorner,                  
+
     
 # FIXME (Ole) Hack to get demo going    
 # Use default projection file.
