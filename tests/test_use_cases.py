@@ -110,7 +110,7 @@ class Test_Usecases(unittest.TestCase):
             C = C[:262,:344]
             R = R[:262,:344]            
             
-            print numpy.max(numpy.abs(C-R))
+            #print numpy.max(numpy.abs(C-R))
             
             # Compare values numerically
             assert numpy.allclose(numpy.min(C), numpy.min(R))
@@ -128,15 +128,54 @@ class Test_Usecases(unittest.TestCase):
     def test_tsunami_building_loss_estimation(self):
         """Test that building losses from tsunami inundation can be computed correctly
         """ 
-        # FIXME: TO APPEAR           
-        pass
+
+        # Upload test data
+        # Create workspace
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)
+
+
+        # Create common handle
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',
+                                                    test_workspace_name)
+
+        # Upload hazard data                                                    
+        hazard_level = 'tsunami_max_inundation_depth_BB'                                                    
+        self.api.upload_geoserver_layer('data/%s.asc' % hazard_level, lh)
+        
+        # Upload exposure data
+        exposure_level = 'tsunami_exposure_BB'                                                    
+        self.api.upload_geoserver_layer('data/%s.shp' % exposure_level, lh)        
+        
+        # Upload exposure data with depth calculated from hazard model
+        exposure_level = 'tsunami_exposure_BB_with_depth'                                                    
+        self.api.upload_geoserver_layer('data/%s.shp' % exposure_level, lh)                
+        
+        # Upload reference impact data        
+        exposure_level = 'tsunami_impact_assessment_BB'                                                    
+        self.api.upload_geoserver_layer('data/%s.shp' % exposure_level, lh)                
+        
+        
+        # Call appropriate calculation function
+        # FIXME: TODO
+        
+        # Test that calculated impact matches reference impact
+        # FIXME: TODO
+        
+        # FIXME (Ole): intermediate test can check that calculation using provided depth at exposure points        
+        # FIXME (Ole): intermediate test can check that interpolated depth is as expected (should not be exact, but close)
+
+        raise Exception('To Appear')
         
         
     def test_earthquake_school_losses(self):
         """Test that school damage from earthquake ground shaking can be computed correctly
         """            
         # FIXME: TO APPEAR                   
-        pass        
+
+        raise Exception('To Appear')        
         
             
         

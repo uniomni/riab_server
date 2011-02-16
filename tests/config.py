@@ -6,4 +6,9 @@ test_workspace_name = 'futnuh'
 geoserver_url = 'http://localhost:8080/geoserver'
 geoserver_username = 'admin'
 geoserver_userpass = 'geoserver'
-        
+
+# FIXME: Have it write 'To Appear'        
+#class UnfinishedException(Exception):
+#    pass
+
+    

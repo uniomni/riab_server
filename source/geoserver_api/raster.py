@@ -39,7 +39,8 @@ class Raster:
         
         # Assume that file contains all data in one band        
         msg = 'Only one raster band currently allowed'
-        assert self.number_of_bands == 1, msg 
+        if self.number_of_bands > 1:
+            print 'WARNING: Number of bands in %s are %i. Only the first band will currently be used.' % (filename, self.number_of_bands)
         
         # Get first band. 
         band = self.band = fid.GetRasterBand(1)

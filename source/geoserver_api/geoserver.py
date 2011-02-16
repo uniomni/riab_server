@@ -215,8 +215,8 @@ class Geoserver:
         # Check to see if the dataset has a coordinate system
         # FIXME: Do this for vector layers also
         dataset = osgeo.gdal.Open(filename, osgeo.gdal.GA_ReadOnly)
-        msg = filename+' had no Coordinate/Spatial Reference System (CRS)'
-        assert dataset.GetProjectionRef().startswith('GEOGCS'), msg
+        msg = filename+' has no Coordinate/Spatial Reference System (CRS)'
+        assert dataset.GetProjectionRef().startswith('GEOGCS') or dataset.GetProjectionRef().startswith('PROJCS'), msg
 
         # Style file in case it accompanies the file        
         provided_style_filename = pathname + '.sld'
