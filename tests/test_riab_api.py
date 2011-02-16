@@ -490,6 +490,24 @@ class Test_API(unittest.TestCase):
             # FIXME: Same problem here
             msg = 'Bounding box has changed through GeoServer: Original was %s but after download it is %s' % (str(ref_bounding_box), str(bounding_box))
             assert numpy.allclose(bounding_box, ref_bounding_box, rtol=1.0e-6, atol=1.0e-2), msg
+            
+            # Test actual values in arrays (but adjust shape)
+            refdata = reference_raster.get_data(nan=False)                        
+            
+            # Test extrema            
+            assert numpy.allclose(numpy.max(data), numpy.max(refdata))            
+            assert numpy.allclose(numpy.min(data), numpy.min(refdata))                        
+            
+            # Problems......
+            # Row by row
+            #for i in range(refdata.shape[0]):
+            #    print data[i,:]-refdata[i,:]
+                
+
+
+            
+            
+            
                                                                                                   
     def test_get_raster_data_asc(self):
         """Test that raster data can be retrieved from server and read into Python Raster object.
@@ -1033,6 +1051,6 @@ class Test_API(unittest.TestCase):
 ################################################################################
 
 if __name__ == '__main__':
-    suite = unittest.makeSuite(Test_API, 'test')
+    suite = unittest.makeSuite(Test_API, 'test_preservation')
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
