@@ -129,7 +129,7 @@ class Test_Usecases(unittest.TestCase):
         """Test that building losses from tsunami inundation can be computed correctly
         """ 
 
-        # Upload test data
+
         # Create workspace
         self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)
 

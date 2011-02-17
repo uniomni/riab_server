@@ -383,7 +383,10 @@ class Test_API(unittest.TestCase):
                 #if not numpy.allclose(x1, x2, rtol=1.0e-1):
                 #    print msg 
         
-         
+
+        
+        
+                 
     # FIXME(Ole): This test still fails. Talk to OpenGeo!        
     def Xtest_bounding_box_of_downloaded_coverage(self):
         """Test that bounding box for downloaded coverage is correct
@@ -505,7 +508,57 @@ class Test_API(unittest.TestCase):
                 
 
 
-            
+
+    def test_download_projected_coverage(self):
+        """Test that a coverage projected to UTM can be downloaded as Geographic
+        """
+    
+        # Create workspace
+        self.api.create_workspace(geoserver_username, geoserver_userpass, geoserver_url, test_workspace_name)
+
+
+        # Create common handle
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    '',
+                                                    test_workspace_name)
+
+        # Upload hazard data (this is natively projected to UTM zone 56S)                                                    
+        hazard_level = 'tsunami_max_inundation_depth_BB'                                                    
+        self.api.upload_geoserver_layer('data/%s.asc' % hazard_level, lh)
+        
+    
+        # Apply known Lat/Lon bounding box manually read from the Geoserver
+        bounding_box = [150.12, -35.787, 150.296, -35.655]
+                        
+        # Download using the API and test that the data is the same.
+        lh = self.api.create_geoserver_layer_handle(geoserver_username, 
+                                                    geoserver_userpass, 
+                                                    geoserver_url, 
+                                                    hazard_level,
+                                                    test_workspace_name)        
+        
+        downloaded_tif = 'downloaded_max_inundation_depth.tif'
+        self.api.download_geoserver_raster_layer(lh,
+                                                 bounding_box,
+                                                 downloaded_tif) # Output filename
+                                                 
+                                         
+        # Verify existence of downloaded files
+        #msg = 'Downloaded coverage %s does not exist' % downloaded_tif
+        #assert downloaded_tif in os.listdir('.'), msg
+        #
+        #downloaded_asc = downloaded_tif[:-4] + '.asc'
+        #msg = 'Downloaded coverage %s does not exist' % downloaded_asc
+        #assert downloaded_asc in os.listdir('.'), msg        
+        #
+        #downloaded_prj = downloaded_tif[:-4] + '.prj'
+        #msg = 'Downloaded coverage %s does not exist' % downloaded_prj
+        #assert downloaded_prj in os.listdir('.'), msg                
+                
+                
+                            
             
             
                                                                                                   
@@ -1051,6 +1104,6 @@ class Test_API(unittest.TestCase):
 ################################################################################
 
 if __name__ == '__main__':
-    suite = unittest.makeSuite(Test_API, 'test_preservation')
+    suite = unittest.makeSuite(Test_API, 'test_download_projected_coverage')
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
